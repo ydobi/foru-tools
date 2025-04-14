@@ -7,15 +7,26 @@
           <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="navbarNav">
+          <!-- 动态菜单 -->
+          <ul class="navbar-nav me-auto">
+            <li v-for="menu in menus" :key="menu.path" class="nav-item">
+              <router-link class="nav-link" :to="menu.path">{{ menu.label }}</router-link>
+            </li>
+          </ul>
+          
+          <!-- 用户信息和登录/注销 -->
           <ul class="navbar-nav">
-            <li class="nav-item">
-              <router-link class="nav-link" to="/company-relation">公司关联关系处理</router-link>
+            <li v-if="!isLoggedIn" class="nav-item">
+              <router-link class="nav-link" to="/login">登录</router-link>
             </li>
-            <li class="nav-item">
-              <router-link class="nav-link" to="/excel-merge">Excel文件合并</router-link>
-            </li>
-            <li class="nav-item">
-              <router-link class="nav-link" to="/smart-map">智能地图工具</router-link>
+            <li v-if="isLoggedIn" class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                {{ currentUser ? currentUser.username : '用户' }}
+                <span v-if="isAdmin" class="badge bg-danger ms-1">管理员</span>
+              </a>
+              <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
+                <li><a class="dropdown-item" href="#" @click.prevent="handleLogout">注销</a></li>
+              </ul>
             </li>
           </ul>
         </div>
@@ -35,8 +46,41 @@
 </template>
 
 <script>
+import { getUser, isLoggedIn, isAdmin, getMenusByRole, logout } from './utils/auth';
+
 export default {
-  name: 'App'
+  name: 'App',
+  data() {
+    return {
+      menus: [],
+      currentUser: null,
+      isLoggedIn: false,
+      isAdmin: false
+    }
+  },
+  created() {
+    // 初始化用户状态
+    this.updateUserState();
+    
+    // 监听路由变化，更新用户状态
+    this.$router.beforeEach((to, from, next) => {
+      this.updateUserState();
+      next();
+    });
+  },
+  methods: {
+    updateUserState() {
+      this.currentUser = getUser();
+      this.isLoggedIn = isLoggedIn();
+      this.isAdmin = isAdmin();
+      this.menus = getMenusByRole();
+    },
+    handleLogout() {
+      logout();
+      this.updateUserState();
+      this.$router.push('/login');
+    }
+  }
 }
 </script>
 
