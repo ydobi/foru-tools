@@ -18,7 +18,7 @@
         <ul>
           <li>如果授权公司A有关联公司BCD，但只有C订货，那么关联公司只写C</li>
           <li>如果授权公司A有关联公司BCD，BC都有订货，就写B/C</li>
-          <li>如果授权公司A有关联公司BCD，但都没有订货，就写#N/A</li>
+          <li>如果授权公司A有关联公司BCD，但都没有订货，就写无</li>
         </ul>
       </div>
 
@@ -230,7 +230,7 @@ export default {
           // 根据规则确定订货关联公司字段
           let orderingRelatedCompanyStr;
           if (orderingRelatedCompanies.length === 0) {
-            orderingRelatedCompanyStr = "#N/A";
+            orderingRelatedCompanyStr = "否";
           } else {
             orderingRelatedCompanyStr = orderingRelatedCompanies.join('/');
           }
@@ -239,7 +239,7 @@ export default {
           const isAuthOrdering = orderCompanyList.includes(authCompany) ? "是" : "否";
           
           // 关联公司列表字符串
-          const relatedCompaniesStr = relatedCompanies.length > 0 ? relatedCompanies.join('/') : "#N/A";
+          const relatedCompaniesStr = relatedCompanies.length > 0 ? relatedCompanies.join('/') : "无";
           
           // 添加到结果中
           this.resultData.push({
