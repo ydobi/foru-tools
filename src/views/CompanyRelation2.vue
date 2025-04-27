@@ -3,7 +3,7 @@
  * @Author: hongkai05
  * @Date: 2025-04-27 15:52:12
  * @LastEditors: hongkai05
- * @LastEditTime: 2025-04-27 21:02:35
+ * @LastEditTime: 2025-04-27 21:49:10
  * @FilePath: \foru-tools\src\views\CompanyRelation2.vue
 -->
 <template>
@@ -95,16 +95,16 @@
               <thead>
                 <tr>
                   <th>平台</th>
-                  <th>植入公司</th>
                   <th>授权公司</th>
+                  <th>植入公司</th>
                   <th>订货公司</th>
                 </tr>
               </thead>
               <tbody>
                 <tr v-for="(row, index) in resultData2" :key="index">
                   <td>{{ row['平台'] }}</td>
-                  <td>{{ row['植入公司'] }}</td>
                   <td>{{ row['授权公司'] }}</td>
+                  <td>{{ row['植入公司'] }}</td>
                   <td>{{ row['订货公司'] }}</td>
                 </tr>
               </tbody>
@@ -121,17 +121,17 @@
               <thead>
                 <tr>
                   <th>平台</th>
+                  <th>订货公司</th>
                   <th>植入公司</th>
                   <th>授权公司</th>
-                  <th>订货公司</th>
                 </tr>
               </thead>
               <tbody>
                 <tr v-for="(row, index) in resultData3" :key="index">
                   <td>{{ row['平台'] }}</td>
+                  <td>{{ row['订货公司'] }}</td>
                   <td>{{ row['植入公司'] }}</td>
                   <td>{{ row['授权公司'] }}</td>
-                  <td>{{ row['订货公司'] }}</td>
                 </tr>
               </tbody>
             </table>
@@ -362,18 +362,18 @@ export default {
             relatedCompanies.push(authCompany);
           }
 
-          // 查找关联的授权公司和订货公司
-          let relatedAuthCompanies = authCompanies.filter(auth => relatedCompanies.includes(auth[authCompanyKey])).map(auth => auth[authCompanyKey]);
+          // 查找关联的植入公司和订货公司
+          let relatedImplantCompanies = implantCompanies.filter(implant => relatedCompanies.includes(implant[implantCompanyKey])).map(implant => implant[implantCompanyKey]);
           let relatedOrderingCompanies = relatedCompanies.filter(c => orderCompanies.some(order => order[orderCompanyKey] === c));
 
-          // 过滤relatedCompanies中不在implantCompanies中的公司
-          relatedCompanies = relatedCompanies.filter(c => implantCompanies.some(implant => implant[implantCompanyKey] === c));
+          // 过滤relatedCompanies中不在authCompanies中的公司
+          relatedCompanies = relatedCompanies.filter(c => authCompanies.some(auth => auth[authCompanyKey] === c));
 
           // 合并relatedCompanies中的平台
-          let relatedPlatforms = relatedCompanies.map(c => implantCompanies.find(implant => implant[implantCompanyKey] === c)[implantPlatformKey]);
+          let relatedPlatforms = relatedCompanies.map(c => authCompanies.find(auth => auth[authCompanyKey] === c)[authChannelKey]);
 
           // 去重relatedAuthCompanies、relatedOrderingCompanies、relatedCompanies、relatedPlatforms
-          relatedAuthCompanies = [...new Set(relatedAuthCompanies)];
+          relatedImplantCompanies = [...new Set(relatedImplantCompanies)];
           relatedOrderingCompanies = [...new Set(relatedOrderingCompanies)];
           relatedCompanies = [...new Set(relatedCompanies)];
           relatedPlatforms = [...new Set(relatedPlatforms)];
@@ -381,8 +381,8 @@ export default {
           // 构建结果行
           const resultRow = {
             '平台': relatedPlatforms.length > 0 ? relatedPlatforms.join('/') : '#N/A',
-            '植入公司': relatedCompanies.length > 0 ? relatedCompanies.join('/') : '#N/A',
-            '授权公司': relatedAuthCompanies.length > 0 ? relatedAuthCompanies.join('/') : '#N/A',
+            '授权公司': relatedCompanies.length > 0 ? relatedCompanies.join('/') : '#N/A',
+            '植入公司': relatedImplantCompanies.length > 0 ? relatedImplantCompanies.join('/') : '#N/A',
             '订货公司': relatedOrderingCompanies.length > 0 ? relatedOrderingCompanies.join('/') : '#N/A',
             '关联编号': relationId || '#N/A'
           };
@@ -416,28 +416,27 @@ export default {
             relatedCompanies.push(orderCompany);
           }
 
-          // 查找关联的授权公司和订货公司
+          // 查找关联的授权公司和植入公司
           let relatedAuthCompanies = authCompanies.filter(auth => relatedCompanies.includes(auth[authCompanyKey])).map(auth => auth[authCompanyKey]);
-          let relatedOrderingCompanies = relatedCompanies.filter(c => orderCompanies.some(order => order[orderCompanyKey] === c));
+          let relatedImplantCompanies = relatedCompanies.filter(c => implantCompanies.some(implant => implant[implantCompanyKey] === c));
 
-          // 过滤relatedCompanies中不在implantCompanies中的公司
-          relatedCompanies = relatedCompanies.filter(c => implantCompanies.some(implant => implant[implantCompanyKey] === c));
-
+          // 过滤relatedCompanies中不在orderCompany中的公司
+          relatedCompanies = relatedCompanies.filter(c => orderCompanies.some(order => order[orderCompanyKey] === c));
           // 合并relatedCompanies中的平台
-          let relatedPlatforms = relatedCompanies.map(c => implantCompanies.find(implant => implant[implantCompanyKey] === c)[implantPlatformKey]);
+          let relatedPlatforms = relatedCompanies.map(c => orderCompanies.find(order => order[orderCompanyKey] === c)[orderPlatformKey]);
 
           // 去重relatedAuthCompanies、relatedOrderingCompanies、relatedCompanies、relatedPlatforms
           relatedAuthCompanies = [...new Set(relatedAuthCompanies)];
-          relatedOrderingCompanies = [...new Set(relatedOrderingCompanies)];
+          relatedImplantCompanies = [...new Set(relatedImplantCompanies)];
           relatedCompanies = [...new Set(relatedCompanies)];
           relatedPlatforms = [...new Set(relatedPlatforms)];
 
           // 构建结果行
           const resultRow = {
             '平台': relatedPlatforms.length > 0 ? relatedPlatforms.join('/') : '#N/A',
-            '植入公司': relatedCompanies.length > 0 ? relatedCompanies.join('/') : '#N/A',
+            '订货公司': relatedCompanies.length > 0 ? relatedCompanies.join('/') : '#N/A',
+            '植入公司': relatedImplantCompanies.length > 0 ? relatedImplantCompanies.join('/') : '#N/A',
             '授权公司': relatedAuthCompanies.length > 0 ? relatedAuthCompanies.join('/') : '#N/A',
-            '订货公司': relatedOrderingCompanies.length > 0 ? relatedOrderingCompanies.join('/') : '#N/A',
             '关联编号': relationId || '#N/A'
           };
 
