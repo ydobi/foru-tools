@@ -66,7 +66,6 @@ export function getMenusByRole() {
       { name: 'CompanyRelation', path: '/company-relation', label: '公司关联关系处理' },
       { name: 'ExcelMerge', path: '/excel-merge', label: 'Excel文件合并' },
       { name: 'SmartMap', path: '/smart-map', label: '智能地图工具' },
-      { name: 'UserManage', path: '/user-manage', label: '用户管理' },
       { name: 'RoleManage', path: '/company-relation2', label: '表格数据合并（植入公司、授权公司、订货公司）' }
     ];
   } else {

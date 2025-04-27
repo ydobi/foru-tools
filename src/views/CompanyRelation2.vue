@@ -3,7 +3,7 @@
  * @Author: hongkai05
  * @Date: 2025-04-27 15:52:12
  * @LastEditors: hongkai05
- * @LastEditTime: 2025-04-27 15:58:55
+ * @LastEditTime: 2025-04-27 18:00:30
  * @FilePath: \foru-tools\src\views\CompanyRelation2.vue
 -->
 <template>
@@ -117,7 +117,6 @@ export default {
       reader.onload = (e) => {
         try {
           const data = new Uint8Array(e.target.result);
-          debugger;
           const workbook = XLSX.read(data, { type: 'array' });
           
           // 确保有四个工作表
@@ -224,81 +223,119 @@ export default {
         }
 
         // 创建结果数组
-        this.resultData = [];
+        const resultData = [];
+        const processedCompanies = new Set();
 
-        // 创建平台和订货公司映射
-        const orderMap = new Map();
-        for (const order of orderCompanies) {
-          orderMap.set(order[orderCompanyKey], order[orderPlatformKey]);
-        }
-
-        // 创建关联编号到平台集合的映射
-        const relationIdToPlatforms = new Map();
-
-        // 创建植入公司到关联编号的映射
-        const implantToRelationId = new Map();
-        for (const [relationId, companies] of relationMap.entries()) {
-          for (const company of companies) {
-            if (implantCompanies.some(implant => implant[implantCompanyKey] === company)) {
-              implantToRelationId.set(company, relationId);
-            }
-            if (orderMap.has(company)) {
-              if (!relationIdToPlatforms.has(relationId)) {
-                relationIdToPlatforms.set(relationId, new Set());
-              }
-              relationIdToPlatforms.get(relationId).add(orderMap.get(company));
-            }
-          }
-        }
-
-        // 创建关联编号到结果行的映射
-        const resultMap = new Map();
+        // 第一步：遍历植入公司
         for (const implant of implantCompanies) {
           const implantCompany = implant[implantCompanyKey];
-          const relationId = implantToRelationId.get(implantCompany);
-          if (!relationId) continue;
-
-          // 获取该关联编号对应的所有平台
-          const platforms = relationIdToPlatforms.get(relationId) || new Set([implant[implantPlatformKey]]);
-          const combinedPlatforms = Array.from(platforms).join('/');
-
-          if (!resultMap.has(relationId)) {
-            resultMap.set(relationId, {
-              '平台': combinedPlatforms,
-              '植入公司': [],
-              '授权公司': [],
-              '订货公司': []
-            });
+          const platform = implant[implantPlatformKey];
+          let relationId = null;
+          let relatedCompanies = [];
+        
+          // 查找关联编号和关联公司
+          for (const [id, companies] of relationMap.entries()) {
+            if (companies.includes(implantCompany)) {
+              relationId = id;
+              relatedCompanies = companies;
+              break;
+            }
           }
-
-          const resultRow = resultMap.get(relationId);
-          resultRow['植入公司'].push(implantCompany);
+          // 
+          if(!relatedCompanies.includes(implantCompany)){
+            relatedCompanies.push(implantCompany);
+          }
 
           // 查找关联的授权公司和订货公司
-          const relatedCompanies = relationMap.get(relationId);
-          // 找到关联的授权公司
           const relatedAuthCompanies = authCompanies.filter(auth => relatedCompanies.includes(auth[authCompanyKey])).map(auth => auth[authCompanyKey]);
-          resultRow['授权公司'] = [...new Set([...resultRow['授权公司'], ...relatedAuthCompanies])];
+          const relatedOrderingCompanies = relatedCompanies.filter(c => orderCompanies.some(order => order[orderCompanyKey] === c));
 
-          // 找到关联的订货公司
-          const relatedOrderingCompanies = relatedCompanies.filter(c => orderMap.has(c));
-          resultRow['订货公司'] = [...new Set([...resultRow['订货公司'], ...relatedOrderingCompanies])];
+          // 构建结果行
+          const resultRow = {
+            '平台': platform,
+            '植入公司': implantCompany,
+            '授权公司': relatedAuthCompanies.length > 0 ? relatedAuthCompanies.join('/') : '#N/A',
+            '订货公司': relatedOrderingCompanies.length > 0 ? relatedOrderingCompanies.join('/') : '#N/A',
+            '关联编号': relationId || '#N/A'
+          };
+
+          resultData.push(resultRow);
+          processedCompanies.add(implantCompany);
         }
 
-        // 处理结果映射为最终结果数据
-        this.resultData = Array.from(resultMap.values()).map(row => {
-          // 对每个公司名称数组去重
-          row['植入公司'] = [...new Set(row['植入公司'])];
-          row['授权公司'] = [...new Set(row['授权公司'])];
-          row['订货公司'] = [...new Set(row['订货公司'])];
-          return {
-            '平台': row['平台'],
-            '植入公司': row['植入公司'].join('/'),
-            '授权公司': row['授权公司'].length > 0 ? row['授权公司'].join('/') : 'N/A',
-            '订货公司': row['订货公司'].length > 0 ? row['订货公司'].join('/') : 'N/A'
-          }
-        });
+        // 第二步：遍历授权公司表格，补充未出现的公司
+        for (const auth of authCompanies) {
+          const authCompany = auth[authCompanyKey];
+          if (processedCompanies.has(authCompany)) continue;
 
+          let relationId = null;
+          let relatedCompanies = [];
+          let platform = null;
+
+          // 查找关联编号和关联公司
+          for (const [id, companies] of relationMap.entries()) {
+            if (companies.includes(authCompany)) {
+              relationId = id;
+              relatedCompanies = companies;
+              // 查找平台
+              const relatedOrder = orderCompanies.find(order => relatedCompanies.includes(order[orderCompanyKey]));
+              platform = relatedOrder ? relatedOrder[orderPlatformKey] : '#N/A';
+              break;
+            }
+          }
+
+          // 查找关联的授权公司和订货公司
+          const relatedAuthCompanies = authCompanies.filter(auth => relatedCompanies.includes(auth[authCompanyKey])).map(auth => auth[authCompanyKey]);
+          const relatedOrderingCompanies = relatedCompanies.filter(c => orderCompanies.some(order => order[orderCompanyKey] === c));
+
+          // 构建结果行
+          const resultRow = {
+            '平台': platform || '#N/A',
+            '植入公司': '#N/A',
+            '授权公司': relatedAuthCompanies.length > 0 ? relatedAuthCompanies.join('/') : '#N/A',
+            '订货公司': relatedOrderingCompanies.length > 0 ? relatedOrderingCompanies.join('/') : '#N/A',
+            '关联编号': relationId || '#N/A'
+          };
+
+          resultData.push(resultRow);
+          processedCompanies.add(authCompany);
+        }
+
+        // 第三步：遍历订货公司表格，补充未出现的公司
+        for (const order of orderCompanies) {
+          const orderCompany = order[orderCompanyKey];
+          if (processedCompanies.has(orderCompany)) continue;
+
+          let relationId = null;
+          let relatedCompanies = [];
+
+          // 查找关联编号和关联公司
+          for (const [id, companies] of relationMap.entries()) {
+            if (companies.includes(orderCompany)) {
+              relationId = id;
+              relatedCompanies = companies;
+              break;
+            }
+          }
+
+          // 查找关联的授权公司和订货公司
+          const relatedAuthCompanies = authCompanies.filter(auth => relatedCompanies.includes(auth[authCompanyKey])).map(auth => auth[authCompanyKey]);
+          const relatedOrderingCompanies = relatedCompanies.filter(c => orderCompanies.some(order => order[orderCompanyKey] === c));
+
+          // 构建结果行
+          const resultRow = {
+            '平台': order[orderPlatformKey],
+            '植入公司': '#N/A',
+            '授权公司': relatedAuthCompanies.length > 0 ? relatedAuthCompanies.join('/') : '#N/A',
+            '订货公司': relatedOrderingCompanies.length > 0 ? relatedOrderingCompanies.join('/') : '#N/A',
+            '关联编号': relationId || '#N/A'
+          };
+
+          resultData.push(resultRow);
+          processedCompanies.add(orderCompany);
+        }
+
+        this.resultData = resultData;
         this.loading = false;
       } catch (error) {
         this.loading = false;
