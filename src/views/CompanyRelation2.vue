@@ -3,7 +3,7 @@
  * @Author: hongkai05
  * @Date: 2025-04-27 15:52:12
  * @LastEditors: hongkai05
- * @LastEditTime: 2025-04-27 21:49:10
+ * @LastEditTime: 2025-04-27 22:18:54
  * @FilePath: \foru-tools\src\views\CompanyRelation2.vue
 -->
 <template>
@@ -19,7 +19,7 @@
         <p>请上传包含以下四个工作表的Excel文件：</p>
         <ol>
           <li><strong>植入公司</strong> - 第一个工作表，必须包含“植入公司”列和“平台”列。</li>
-          <li><strong>授权公司</strong> - 第二个工作表，必须包含“授权公司”列，可包含“渠道”列。</li>
+          <li><strong>授权公司</strong> - 第二个工作表，必须包含“授权公司”列，可包含“平台”列。</li>
           <li><strong>订货公司</strong> - 第三个工作表，必须包含“订货公司”列和“平台”列。</li>
           <li><strong>关联关系</strong> - 第四个工作表，必须包含“经销商名称”和“关联编号”列，关联编号一致的表示为关联公司。</li>
         </ol>
@@ -263,7 +263,7 @@ export default {
         // 找到实际的列名（可能有前缀或后缀）
         const implantPlatformKey = this.findKey(implantCompanies[0], '平台');
         const implantCompanyKey = this.findKey(implantCompanies[0], '植入公司');
-        const authChannelKey = this.findKey(authCompanies[0], '渠道');
+        const authChannelKey = this.findKey(authCompanies[0], '平台');
         const authCompanyKey = this.findKey(authCompanies[0], '授权公司');
         const orderPlatformKey = this.findKey(orderCompanies[0], '平台');
         const orderCompanyKey = this.findKey(orderCompanies[0], '订货公司');
