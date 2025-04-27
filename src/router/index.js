@@ -32,6 +32,11 @@ const routes = [
     }
   },
   {
+    path: '/company-relation2',
+    name: 'CompanyRelation2',
+    component: () => import('@/views/CompanyRelation2.vue')
+  },
+  {
     path: '/smart-map',
     name: 'SmartMap',
     component: SmartMap,

@@ -30,6 +30,23 @@
         </el-card>
       </el-col>
       
+      <!-- CompanyRelation2 - 所有登录用户可见 -->
+      <el-col :xs="24" :sm="12" :md="8">
+        <el-card class="tool-card" shadow="hover">
+          <template #header>
+            <div class="card-header">
+              <span>公司关联关系处理2</span>
+              <el-tag type="success" size="small" effect="dark">所有用户</el-tag>
+            </div>
+          </template>
+          <div class="card-content">
+            <el-icon class="tool-icon"><DocumentIcon /></el-icon>
+            <p class="card-description">上传Excel文件，自动处理授权公司与订货公司的关联关系，以植入公司作为基础列合并数据。</p>
+            <el-button type="primary" @click="$router.push('/company-relation2')">使用工具</el-button>
+          </div>
+        </el-card>
+      </el-col>
+      
       <!-- Excel文件合并 - 所有登录用户可见 -->
       <el-col :xs="24" :sm="12" :md="8">
         <el-card class="tool-card" shadow="hover">
@@ -79,6 +96,7 @@
 <script>
 import { Document as DocumentIcon, Files as FilesIcon, MapLocation as MapLocationIcon } from '@element-plus/icons-vue'
 import { getUser, isAdmin, hasRole } from '../utils/auth'
+import CompanyRelation2 from './CompanyRelation2.vue'
 
 export default {
   name: 'Home',
@@ -178,3 +196,5 @@ export default {
   flex-grow: 1;
 }
 </style>
+
+<CompanyRelation2 />
