@@ -335,7 +335,7 @@ export default {
           processedCompanies.add(orderCompany);
         }
 
-        this.resultData = resultData;
+        this.resultData = resultData.filter(row => !(row['植入公司'] === '#N/A' && row['授权公司'] === '#N/A' && row['订货公司'] === '#N/A'));
         this.loading = false;
       } catch (error) {
         this.loading = false;
