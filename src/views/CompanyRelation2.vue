@@ -3,7 +3,7 @@
  * @Author: hongkai05
  * @Date: 2025-04-27 15:52:12
  * @LastEditors: hongkai05
- * @LastEditTime: 2025-04-27 18:00:30
+ * @LastEditTime: 2025-04-27 21:02:35
  * @FilePath: \foru-tools\src\views\CompanyRelation2.vue
 -->
 <template>
@@ -25,11 +25,11 @@
         </ol>
         <p>处理规则：</p>
         <ul>
-          <li>以植入公司作为基础列，查找其关联的授权公司和订货公司。</li>
-          <li>如果授权公司A有关联公司BCD，但只有C订货，那么关联订货公司只写C。</li>
-          <li>如果授权公司A有关联公司BCD，BC都有订货，关联订货公司写B/C。</li>
-          <li>如果授权公司A有关联公司BCD，但都没有订货，关联订货公司写N/A。</li>
-          <li>关联授权公司列表中，若存在关联授权公司则用斜杠分隔，若无则写N/A。</li>
+          <li>分别以植入公司、授权公司和订货公司作为数据源，基于关联关系工作表构建新的关联数据。</li>
+          <li>查找每个公司对应的关联编号，获取关联公司列表。</li>
+          <li>根据关联公司列表，筛选出关联的授权公司和订货公司。</li>
+          <li>将关联的平台、植入公司、授权公司和订货公司信息合并，相同信息用斜杠分隔，若无则显示#N/A。</li>
+          <li>处理过程中会对重复公司进行去重，避免结果重复。</li>
         </ul>
       </div>
 
@@ -52,30 +52,91 @@
       </div>
     </div>
 
-    <div class="result-container bg-white p-4 rounded shadow-sm mt-4" v-if="resultData.length > 0">
-      <h3>处理结果</h3>
-      <div class="d-flex justify-content-end mb-3">
-        <button class="btn btn-success" @click="downloadExcel">下载Excel结果</button>
+    <div class="result-container bg-white p-4 rounded shadow-sm mt-4" v-if="resultData1.length > 0 || resultData2.length > 0 || resultData3.length > 0">
+      <div class="nav nav-tabs">
+        <button class="nav-link" :class="{ active: activeTab === 1 }" @click="activeTab = 1">植入结果</button>
+        <button class="nav-link" :class="{ active: activeTab === 2 }" @click="activeTab = 2">授权结果</button>
+        <button class="nav-link" :class="{ active: activeTab === 3 }" @click="activeTab = 3">订货结果</button>
       </div>
-      <div class="table-responsive" style="max-height: 500px; overflow-y: auto;">
-        <table class="table table-striped table-bordered">
-          <thead>
-            <tr>
-              <th>平台</th>
-              <th>植入公司</th>
-              <th>授权公司</th>
-              <th>订货公司</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="(row, index) in resultData" :key="index">
-              <td>{{ row['平台'] }}</td>
-              <td>{{ row['植入公司'] }}</td>
-              <td>{{ row['授权公司'] }}</td>
-              <td>{{ row['订货公司'] }}</td>
-            </tr>
-          </tbody>
-        </table>
+      <div class="tab-content mt-3">
+        <div class="tab-pane fade show" :class="{ active: activeTab === 1 }" v-if="resultData1.length > 0">
+          <h3>植入结果</h3>
+          <div class="d-flex justify-content-end mb-3">
+            <button class="btn btn-success" @click="downloadExcel(resultData1, '植入')">下载Excel结果</button>
+          </div>
+          <div class="table-responsive" style="max-height: 500px; overflow-y: auto;">
+            <table class="table table-striped table-bordered">
+              <thead>
+                <tr>
+                  <th>平台</th>
+                  <th>植入公司</th>
+                  <th>授权公司</th>
+                  <th>订货公司</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="(row, index) in resultData1" :key="index">
+                  <td>{{ row['平台'] }}</td>
+                  <td>{{ row['植入公司'] }}</td>
+                  <td>{{ row['授权公司'] }}</td>
+                  <td>{{ row['订货公司'] }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="tab-pane fade show" :class="{ active: activeTab === 2 }" v-if="resultData2.length > 0">
+          <h3>授权结果</h3>
+          <div class="d-flex justify-content-end mb-3">
+            <button class="btn btn-success" @click="downloadExcel(resultData2, '授权')">下载Excel结果</button>
+          </div>
+          <div class="table-responsive" style="max-height: 500px; overflow-y: auto;">
+            <table class="table table-striped table-bordered">
+              <thead>
+                <tr>
+                  <th>平台</th>
+                  <th>植入公司</th>
+                  <th>授权公司</th>
+                  <th>订货公司</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="(row, index) in resultData2" :key="index">
+                  <td>{{ row['平台'] }}</td>
+                  <td>{{ row['植入公司'] }}</td>
+                  <td>{{ row['授权公司'] }}</td>
+                  <td>{{ row['订货公司'] }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="tab-pane fade show" :class="{ active: activeTab === 3 }" v-if="resultData3.length > 0">
+          <h3>订货结果</h3>
+          <div class="d-flex justify-content-end mb-3">
+            <button class="btn btn-success" @click="downloadExcel(resultData3, '订货')">下载Excel结果</button>
+          </div>
+          <div class="table-responsive" style="max-height: 500px; overflow-y: auto;">
+            <table class="table table-striped table-bordered">
+              <thead>
+                <tr>
+                  <th>平台</th>
+                  <th>植入公司</th>
+                  <th>授权公司</th>
+                  <th>订货公司</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="(row, index) in resultData3" :key="index">
+                  <td>{{ row['平台'] }}</td>
+                  <td>{{ row['植入公司'] }}</td>
+                  <td>{{ row['授权公司'] }}</td>
+                  <td>{{ row['订货公司'] }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -89,7 +150,10 @@ export default {
       selectedFile: null,
       loading: false,
       errorMessage: '',
-      resultData: []
+      resultData1: [],
+      resultData2: [],
+      resultData3: [],
+      activeTab: 1 // 新增 activeTab 状态
     }
   },
   methods: {
@@ -110,7 +174,6 @@ export default {
       
       this.loading = true;
       this.errorMessage = '';
-      this.resultData = [];
       
       const reader = new FileReader();
       
@@ -223,13 +286,13 @@ export default {
         }
 
         // 创建结果数组
-        const resultData = [];
-        const processedCompanies = new Set();
+        const resultData1 = [];
+        const processedCompanies1 = new Set();
 
-        // 第一步：遍历植入公司
+        // 以植入公司作为数据源，构造新的关联关系数据
         for (const implant of implantCompanies) {
           const implantCompany = implant[implantCompanyKey];
-          const platform = implant[implantPlatformKey];
+          if( processedCompanies1.has(implantCompany)) continue;
           let relationId = null;
           let relatedCompanies = [];
         
@@ -241,71 +304,103 @@ export default {
               break;
             }
           }
-          // 
           if(!relatedCompanies.includes(implantCompany)){
             relatedCompanies.push(implantCompany);
           }
 
           // 查找关联的授权公司和订货公司
-          const relatedAuthCompanies = authCompanies.filter(auth => relatedCompanies.includes(auth[authCompanyKey])).map(auth => auth[authCompanyKey]);
-          const relatedOrderingCompanies = relatedCompanies.filter(c => orderCompanies.some(order => order[orderCompanyKey] === c));
+          let relatedAuthCompanies = authCompanies.filter(auth => relatedCompanies.includes(auth[authCompanyKey])).map(auth => auth[authCompanyKey]);
+          let relatedOrderingCompanies = relatedCompanies.filter(c => orderCompanies.some(order => order[orderCompanyKey] === c));
 
+          // 过滤relatedCompanies中不在implantCompanies中的公司
+          relatedCompanies = relatedCompanies.filter(c => implantCompanies.some(implant => implant[implantCompanyKey] === c));
+
+          // 合并relatedCompanies中的平台
+          let relatedPlatforms = relatedCompanies.map(c => implantCompanies.find(implant => implant[implantCompanyKey] === c)[implantPlatformKey]);
+
+          // 去重relatedAuthCompanies、relatedOrderingCompanies、relatedCompanies、relatedPlatforms
+          relatedAuthCompanies = [...new Set(relatedAuthCompanies)];
+          relatedOrderingCompanies = [...new Set(relatedOrderingCompanies)];
+          relatedCompanies = [...new Set(relatedCompanies)];
+          relatedPlatforms = [...new Set(relatedPlatforms)];
+          
           // 构建结果行
           const resultRow = {
-            '平台': platform,
-            '植入公司': implantCompany,
+            '平台': relatedPlatforms.length > 0 ? relatedPlatforms.join('/') : '#N/A',
+            '植入公司': relatedCompanies.length > 0 ? relatedCompanies.join('/') : '#N/A',
             '授权公司': relatedAuthCompanies.length > 0 ? relatedAuthCompanies.join('/') : '#N/A',
             '订货公司': relatedOrderingCompanies.length > 0 ? relatedOrderingCompanies.join('/') : '#N/A',
             '关联编号': relationId || '#N/A'
           };
 
-          resultData.push(resultRow);
-          processedCompanies.add(implantCompany);
+          resultData1.push(resultRow);
+          for( const relatedCompany of relatedCompanies){
+            processedCompanies1.add(relatedCompany);
+          }
+          
         }
+         
+        const resultData2 = [];
+        const processedCompanies2 = new Set();
 
-        // 第二步：遍历授权公司表格，补充未出现的公司
+        // 以授权公司作为数据源，构造新的关联关系数据
         for (const auth of authCompanies) {
           const authCompany = auth[authCompanyKey];
-          if (processedCompanies.has(authCompany)) continue;
-
+          if( processedCompanies2.has(authCompany)) continue;
           let relationId = null;
           let relatedCompanies = [];
-          let platform = null;
 
           // 查找关联编号和关联公司
           for (const [id, companies] of relationMap.entries()) {
             if (companies.includes(authCompany)) {
               relationId = id;
               relatedCompanies = companies;
-              // 查找平台
-              const relatedOrder = orderCompanies.find(order => relatedCompanies.includes(order[orderCompanyKey]));
-              platform = relatedOrder ? relatedOrder[orderPlatformKey] : '#N/A';
               break;
             }
           }
+          if(!relatedCompanies.includes(authCompany)){
+            relatedCompanies.push(authCompany);
+          }
 
           // 查找关联的授权公司和订货公司
-          const relatedAuthCompanies = authCompanies.filter(auth => relatedCompanies.includes(auth[authCompanyKey])).map(auth => auth[authCompanyKey]);
-          const relatedOrderingCompanies = relatedCompanies.filter(c => orderCompanies.some(order => order[orderCompanyKey] === c));
+          let relatedAuthCompanies = authCompanies.filter(auth => relatedCompanies.includes(auth[authCompanyKey])).map(auth => auth[authCompanyKey]);
+          let relatedOrderingCompanies = relatedCompanies.filter(c => orderCompanies.some(order => order[orderCompanyKey] === c));
+
+          // 过滤relatedCompanies中不在implantCompanies中的公司
+          relatedCompanies = relatedCompanies.filter(c => implantCompanies.some(implant => implant[implantCompanyKey] === c));
+
+          // 合并relatedCompanies中的平台
+          let relatedPlatforms = relatedCompanies.map(c => implantCompanies.find(implant => implant[implantCompanyKey] === c)[implantPlatformKey]);
+
+          // 去重relatedAuthCompanies、relatedOrderingCompanies、relatedCompanies、relatedPlatforms
+          relatedAuthCompanies = [...new Set(relatedAuthCompanies)];
+          relatedOrderingCompanies = [...new Set(relatedOrderingCompanies)];
+          relatedCompanies = [...new Set(relatedCompanies)];
+          relatedPlatforms = [...new Set(relatedPlatforms)];
 
           // 构建结果行
           const resultRow = {
-            '平台': platform || '#N/A',
-            '植入公司': '#N/A',
+            '平台': relatedPlatforms.length > 0 ? relatedPlatforms.join('/') : '#N/A',
+            '植入公司': relatedCompanies.length > 0 ? relatedCompanies.join('/') : '#N/A',
             '授权公司': relatedAuthCompanies.length > 0 ? relatedAuthCompanies.join('/') : '#N/A',
             '订货公司': relatedOrderingCompanies.length > 0 ? relatedOrderingCompanies.join('/') : '#N/A',
             '关联编号': relationId || '#N/A'
           };
 
-          resultData.push(resultRow);
-          processedCompanies.add(authCompany);
+          resultData2.push(resultRow);
+          for( const relatedCompany of relatedCompanies){
+            processedCompanies2.add(relatedCompany);
+          }
         }
 
-        // 第三步：遍历订货公司表格，补充未出现的公司
+
+        const resultData3 = [];
+        const processedCompanies3 = new Set();
+
+        // 以订货公司作为数据源，构造新的关联关系数据
         for (const order of orderCompanies) {
           const orderCompany = order[orderCompanyKey];
-          if (processedCompanies.has(orderCompany)) continue;
-
+          if( processedCompanies3.has(orderCompany)) continue;
           let relationId = null;
           let relatedCompanies = [];
 
@@ -317,31 +412,50 @@ export default {
               break;
             }
           }
+          if(!relatedCompanies.includes(orderCompany)){
+            relatedCompanies.push(orderCompany);
+          }
 
           // 查找关联的授权公司和订货公司
-          const relatedAuthCompanies = authCompanies.filter(auth => relatedCompanies.includes(auth[authCompanyKey])).map(auth => auth[authCompanyKey]);
-          const relatedOrderingCompanies = relatedCompanies.filter(c => orderCompanies.some(order => order[orderCompanyKey] === c));
+          let relatedAuthCompanies = authCompanies.filter(auth => relatedCompanies.includes(auth[authCompanyKey])).map(auth => auth[authCompanyKey]);
+          let relatedOrderingCompanies = relatedCompanies.filter(c => orderCompanies.some(order => order[orderCompanyKey] === c));
+
+          // 过滤relatedCompanies中不在implantCompanies中的公司
+          relatedCompanies = relatedCompanies.filter(c => implantCompanies.some(implant => implant[implantCompanyKey] === c));
+
+          // 合并relatedCompanies中的平台
+          let relatedPlatforms = relatedCompanies.map(c => implantCompanies.find(implant => implant[implantCompanyKey] === c)[implantPlatformKey]);
+
+          // 去重relatedAuthCompanies、relatedOrderingCompanies、relatedCompanies、relatedPlatforms
+          relatedAuthCompanies = [...new Set(relatedAuthCompanies)];
+          relatedOrderingCompanies = [...new Set(relatedOrderingCompanies)];
+          relatedCompanies = [...new Set(relatedCompanies)];
+          relatedPlatforms = [...new Set(relatedPlatforms)];
 
           // 构建结果行
           const resultRow = {
-            '平台': order[orderPlatformKey],
-            '植入公司': '#N/A',
+            '平台': relatedPlatforms.length > 0 ? relatedPlatforms.join('/') : '#N/A',
+            '植入公司': relatedCompanies.length > 0 ? relatedCompanies.join('/') : '#N/A',
             '授权公司': relatedAuthCompanies.length > 0 ? relatedAuthCompanies.join('/') : '#N/A',
             '订货公司': relatedOrderingCompanies.length > 0 ? relatedOrderingCompanies.join('/') : '#N/A',
             '关联编号': relationId || '#N/A'
           };
 
-          resultData.push(resultRow);
-          processedCompanies.add(orderCompany);
+          resultData3.push(resultRow);
+          for( const relatedCompany of relatedCompanies){ processedCompanies3.add(relatedCompany); }
         }
 
-        this.resultData = resultData.filter(row => !(row['植入公司'] === '#N/A' && row['授权公司'] === '#N/A' && row['订货公司'] === '#N/A'));
+        this.resultData1 = resultData1.filter(row => !(row['植入公司'] === '#N/A' && row['授权公司'] === '#N/A' && row['订货公司'] === '#N/A'));
+        this.resultData2 = resultData2.filter(row => !(row['平台'] === '#N/A' && row['植入公司'] === '#N/A' && row['授权公司'] === '#N/A' && row['订货公司'] === '#N/A'));
+        this.resultData3 = resultData3.filter(row => !(row['平台'] === '#N/A' && row['植入公司'] === '#N/A' && row['授权公司'] === '#N/A' && row['订货公司'] === '#N/A'));
+
         this.loading = false;
       } catch (error) {
         this.loading = false;
         this.errorMessage = '处理数据时出错: ' + error.message;
       }
     },
+    
     findKey(obj, keyword) {
       const keys = Object.keys(obj);
       const key = keys.find(k => k.includes(keyword));
@@ -350,20 +464,34 @@ export default {
       }
       return key;
     },
-    downloadExcel() {
-      if (this.resultData.length === 0) {
+
+    downloadExcel(resultData, name) {
+      if (resultData.length === 0) {
         return;
       }
-      
       // 创建工作表
-      const ws = XLSX.utils.json_to_sheet(this.resultData);
+      const ws = XLSX.utils.json_to_sheet(resultData);
       
       // 创建工作簿
       const wb = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb, ws, "处理结果");
       
       // 生成Excel文件并下载
-      XLSX.writeFile(wb, "公司关联关系处理结果.xlsx");
+      XLSX.writeFile(wb, `${name}.xlsx`);
+    },
+    /**
+     * 全部下载
+     */
+    downloadAll() {
+      if (this.resultData1.length > 0) {
+        this.downloadExcel(this.resultData1, '植入');
+      }
+      if (this.resultData2.length > 0) {
+        this.downloadExcel(this.resultData2, '授权');
+      }
+      if (this.resultData3.length > 0) {
+        this.downloadExcel(this.resultData3, '订货');
+      }
     }
   }
 }
