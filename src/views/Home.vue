@@ -64,6 +64,23 @@
         </el-card>
       </el-col>
       
+      <!-- 医院授权&植入分析 - 所有登录用户可见 -->
+      <el-col :xs="24" :sm="12" :md="8">
+        <el-card class="tool-card" shadow="hover">
+          <template #header>
+            <div class="card-header">
+              <span>医院授权&植入分析</span>
+              <el-tag type="success" size="small" effect="dark">所有用户</el-tag>
+            </div>
+          </template>
+          <div class="card-content">
+            <el-icon class="tool-icon"><DocumentIcon /></el-icon>
+            <p class="card-description">解析Excel文件，按销售经理维度和全国维度分析医院授权与植入情况。</p>
+            <el-button type="primary" @click="$router.push('/hospital-auth-analysis')">使用工具</el-button>
+          </div>
+        </el-card>
+      </el-col>
+      
       <!-- 智能地图工具 - 仅管理员可见 -->
       <el-col v-if="isAdmin" :xs="24" :sm="12" :md="8">
         <el-card class="tool-card" shadow="hover">

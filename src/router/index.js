@@ -4,6 +4,7 @@ import CompanyRelation from '../views/CompanyRelation.vue'
 import ExcelMerge from '../views/ExcelMerge.vue'
 import SmartMap from '../views/SmartMap.vue'
 import Login from '../views/Login.vue'
+import HospitalAuthAnalysis from '../views/HospitalAuthAnalysis.vue'
 import { isLoggedIn, hasRole } from '../utils/auth'
 
 const routes = [
@@ -43,6 +44,15 @@ const routes = [
     meta: { 
       requiresAuth: true,
       roles: ['admin'] // 只有管理员可以访问
+    }
+  },
+  {
+    path: '/hospital-auth-analysis',
+    name: 'HospitalAuthAnalysis',
+    component: HospitalAuthAnalysis,
+    meta: { 
+      requiresAuth: true,
+      roles: ['admin', 'user'] // 管理员和普通用户都可以访问
     }
   },
   {
