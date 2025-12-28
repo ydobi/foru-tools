@@ -27,6 +27,22 @@
       >
         处理文件
       </el-button>
+      <el-button
+        type="info"
+        :disabled="!selectedSalesManager"
+        @click="exportToImage"
+        style="margin-left: 10px"
+      >
+        导出为图片
+      </el-button>
+      <el-button
+        type="warning"
+        :disabled="salesManagers.length === 0"
+        @click="exportAllToImage"
+        style="margin-left: 10px"
+      >
+        批量导出所有销售经理图片
+      </el-button>
     </div>
 
     <!-- 销售经理选择器 -->
@@ -38,7 +54,6 @@
         style="width: 200px"
         @change="handleSalesManagerChange"
       >
-        <el-option label="全国" value="总计"></el-option>
         <el-option
           v-for="manager in salesManagers"
           :key="manager"
@@ -50,7 +65,7 @@
     </div>
 
     <!-- 数据分析结果 -->
-    <div class="analysis-result" v-if="analysisData">
+    <div class="analysis-result" v-if="selectedSalesManager">
       <!-- title -->
       <div class="national-label">{{ selectedSalesManager }}</div>
 
@@ -81,6 +96,10 @@
 
       <!-- 有授权无植入原因流程图 -->
       <div class="flow-chart blue-flow">
+        <!-- 添加蓝色箭头，最后一个flow-item不显示箭头 -->
+        <div class="flow-arrow">
+          <div class="arrow-line blue"></div>
+        </div>
         <div
           v-for="(item, index) in analysisData[selectedSalesManager]
             ?.authorizedNoImplant?.data || []"
@@ -105,14 +124,14 @@
             </div>
           </div>
         </div>
-        <!-- 添加蓝色箭头，最后一个flow-item不显示箭头 -->
-        <div class="flow-arrow">
-          <div class="arrow-line blue"></div>
-        </div>
       </div>
 
       <!-- 有植入无授权原因流程图 -->
       <div class="flow-chart orange-flow">
+        <!-- 添加橙色箭头，最后一个flow-item不显示箭头 -->
+        <div class="flow-arrow" style="top: 70px; left: -160px">
+          <div class="arrow-line orange"></div>
+        </div>
         <div
           v-for="(reason, index) in analysisData[selectedSalesManager]
             ?.implantNoAuthorized?.data || []"
@@ -138,10 +157,6 @@
               </span>
             </div>
           </div>
-        </div>
-        <!-- 添加橙色箭头，最后一个flow-item不显示箭头 -->
-        <div class="flow-arrow" style="top: 70px">
-          <div class="arrow-line orange"></div>
         </div>
       </div>
 
@@ -175,6 +190,7 @@
 
 <script>
 import * as XLSX from "xlsx";
+import html2canvas from "html2canvas";
 
 export default {
   name: "HospitalAuthAnalysis",
@@ -183,7 +199,7 @@ export default {
       selectedFile: null,
       analysisData: null,
       salesManagers: [],
-      selectedSalesManager: "总计",
+      selectedSalesManager: "",
       rawData: [],
     };
   },
@@ -318,6 +334,128 @@ export default {
       // 返回最终分析结果
       return data;
     },
+
+    // 导出为图片
+    async exportToImage() {
+      if (!this.selectedSalesManager) {
+        this.$message.error("请先选择销售经理");
+        return;
+      }
+
+      this.$message.info("正在生成图片...");
+
+      try {
+        // 获取要截图的元素
+        const element = document.querySelector(".analysis-result");
+        if (!element) {
+          throw new Error("未找到要截图的元素");
+        }
+
+        // 配置html2canvas选项
+        const options = {
+          scale: 2, // 提高清晰度
+          useCORS: true,
+          backgroundColor: "#ffffff",
+          allowTaint: false,
+          logging: false,
+          windowWidth: element.scrollWidth + 100, // 向右扩展100px
+          windowHeight: element.scrollHeight,
+          x: 0,
+          y: 0,
+          width: element.offsetWidth + 100, // 向右扩展100px
+          height: element.offsetHeight,
+        };
+
+        // 生成canvas
+        const canvas = await html2canvas(element, options);
+
+        // 转换为图片并下载
+        const link = document.createElement("a");
+        link.download = `${this.selectedSalesManager}_医院分析报告_${new Date()
+          .toLocaleDateString("zh-CN")
+          .replace(/\//g, "-")}.png`;
+        link.href = canvas.toDataURL("image/png");
+        link.click();
+
+        this.$message.success("图片导出成功！");
+      } catch (error) {
+        console.error("导出图片失败:", error);
+        this.$message.error("图片导出失败，请重试！");
+      }
+    },
+
+    // 批量导出所有销售经理图片
+    async exportAllToImage() {
+      if (this.salesManagers.length === 0) {
+        this.$message.error("暂无销售经理数据");
+        return;
+      }
+
+      this.$message.info(
+        `开始批量导出${this.salesManagers.length}个销售经理的数据...`
+      );
+      const originalSelectedManager = this.selectedSalesManager;
+      let successCount = 0;
+      let failCount = 0;
+
+      try {
+        for (const manager of this.salesManagers) {
+          // 选择当前销售经理
+          this.selectedSalesManager = manager;
+          // 等待DOM更新
+          await this.$nextTick();
+
+          // 获取要截图的元素
+          const element = document.querySelector(".analysis-result");
+          if (!element) {
+            failCount++;
+            continue;
+          }
+
+          // 配置html2canvas选项
+          const options = {
+            scale: 2, // 提高清晰度
+            useCORS: true,
+            backgroundColor: "#ffffff",
+            allowTaint: false,
+            logging: false,
+            windowWidth: element.scrollWidth + 100, // 向右扩展100px
+            windowHeight: element.scrollHeight,
+            x: 0,
+            y: 0,
+            width: element.offsetWidth + 100, // 向右扩展100px
+            height: element.offsetHeight,
+          };
+
+          // 生成canvas
+          const canvas = await html2canvas(element, options);
+
+          // 转换为图片并下载
+          const link = document.createElement("a");
+          link.download = `${manager}_医院分析报告_${new Date()
+            .toLocaleDateString("zh-CN")
+            .replace(/\//g, "-")}.png`;
+          link.href = canvas.toDataURL("image/png");
+          link.click();
+
+          successCount++;
+          // 短暂延迟，避免浏览器下载请求过于频繁
+          await new Promise((resolve) => setTimeout(resolve, 500));
+        }
+
+        this.$message.success(
+          `批量导出完成！成功：${successCount}个，失败：${failCount}个`
+        );
+      } catch (error) {
+        console.error("批量导出图片失败:", error);
+        this.$message.error(
+          `批量导出失败，已成功导出${successCount}个销售经理的数据`
+        );
+      } finally {
+        // 恢复原始选择的销售经理
+        this.selectedSalesManager = originalSelectedManager;
+      }
+    },
   },
 };
 </script>
@@ -343,6 +481,7 @@ export default {
 
 .analysis-result {
   margin-top: 20px;
+  padding: 0 50px;
 }
 
 .national-label {
@@ -446,8 +585,8 @@ export default {
   position: absolute;
   /* 居中 */
   top: 100px;
-  left: -60px;
-  z-index: 1;
+  left: -160px; /* 向左平移100px，从-60px调整为-160px */
+  z-index: 0; /* 调整为0，确保在底层 */
   display: flex;
   align-items: center;
   margin: 0 10px;
@@ -459,6 +598,7 @@ export default {
   width: 1400px;
   position: relative;
   border-radius: 3px;
+  z-index: 0; /* 确保箭头线在底层 */
 }
 
 /* 蓝色箭头 */
@@ -483,6 +623,7 @@ export default {
   border-left: 30px solid;
   border-top: 30px solid transparent;
   border-bottom: 30px solid transparent;
+  z-index: 0; /* 确保箭头头部在底层 */
 }
 
 .arrow-line.blue::after {
