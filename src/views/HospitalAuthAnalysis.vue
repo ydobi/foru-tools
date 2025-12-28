@@ -38,7 +38,7 @@
         style="width: 200px"
         @change="handleSalesManagerChange"
       >
-        <el-option label="全国" value="全国"></el-option>
+        <el-option label="全国" value="总计"></el-option>
         <el-option
           v-for="manager in salesManagers"
           :key="manager"
@@ -51,7 +51,7 @@
 
     <!-- 数据分析结果 -->
     <div class="analysis-result" v-if="analysisData">
-      <!-- 全国标签 -->
+      <!-- title -->
       <div class="national-label">{{ selectedSalesManager }}</div>
 
       <!-- 有授权无植入统计 -->
@@ -87,26 +87,52 @@
           :key="index"
           class="flow-item"
         >
-          <div class="reason-box" :class="item.highlight ? 'highlight' : ''">
-            <div class="reason-count">{{ item.count || 0 }}家</div>
-            <div
-              class="reason-change"
-              :class="item.change > 0 ? 'increase' : 'decrease'"
-            >
-              {{ item.change > 0 ? "↑" : "↓" }}{{ Math.abs(item.change || 0) }}
+          <div>
+            <div class="reason-count">
+              <span
+                >{{ item.count || 0 }}家
+                <span
+                  v-if="item.change"
+                  class="reason-change"
+                  :class="item.change > 0 ? 'increase' : 'decrease'"
+                  >{{ item.change > 0 ? "↑" : "↓"
+                  }}{{ Math.abs(item.change || 0) }}
+                </span>
+              </span>
             </div>
-            <div class="reason-desc">{{ item.reason }}</div>
+            <div class="reason-box" :class="item.change < 0 ? 'highlight' : ''">
+              {{ item.reason }}
+            </div>
           </div>
-          <div
-            class="flow-arrow"
-            v-if="
-              index <
-              analysisData[selectedSalesManager]?.authorizedNoImplant?.data
-                ?.length -
-                1
-            "
-          >
-            <div class="arrow-line blue"></div>
+        </div>
+      </div>
+
+      <!-- 有植入无授权原因流程图 -->
+      <div class="flow-chart orange-flow">
+        <div
+          v-for="(reason, index) in analysisData[selectedSalesManager]
+            ?.implantNoAuthorized?.data || []"
+          :key="index"
+          class="flow-item"
+        >
+          <div>
+            <div
+              class="reason-box"
+              :class="reason.change < 0 ? 'highlight' : ''"
+            >
+              {{ reason.reason }}
+            </div>
+            <div class="reason-count">
+              <span
+                >{{ reason.count || 0 }}家
+                <span
+                  class="reason-change"
+                  :class="reason.change > 0 ? 'increase' : 'decrease'"
+                  >{{ reason.change > 0 ? "↑" : "↓"
+                  }}{{ Math.abs(reason.change || 0) }}
+                </span>
+              </span>
+            </div>
           </div>
         </div>
       </div>
@@ -135,49 +161,6 @@
           }}
         </span>
       </div>
-
-      <!-- 有植入无授权原因流程图 -->
-      <div class="flow-chart orange-flow">
-        <div
-          v-for="(reason, index) in analysisData[selectedSalesManager]
-            ?.implantNoAuthorized?.data || []"
-          :key="index"
-          class="flow-item"
-        >
-          <div class="reason-box" :class="reason.highlight ? 'highlight' : ''">
-            <div class="reason-count">{{ reason.count || 0 }}家</div>
-            <div
-              class="reason-change"
-              :class="reason.change > 0 ? 'increase' : 'decrease'"
-            >
-              {{ reason.change > 0 ? "↑" : "↓"
-              }}{{ Math.abs(reason.change || 0) }}
-            </div>
-            <div class="reason-desc">{{ reason.reason }}</div>
-          </div>
-          <div
-            class="flow-arrow"
-            v-if="
-              index <
-              analysisData[selectedSalesManager]?.implantNoAuthorized?.data
-                ?.length -
-                1
-            "
-          >
-            <div class="arrow-line orange"></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- 备注信息 -->
-      <div class="remarks">
-        <h3>备注：</h3>
-        <ol>
-          <li>截止到11月5日FY50期授权；</li>
-          <li>FY50 7月-10月植入；</li>
-          <li>授权与植入医院匹配时不分品类。</li>
-        </ol>
-      </div>
     </div>
   </div>
 </template>
@@ -192,7 +175,7 @@ export default {
       selectedFile: null,
       analysisData: null,
       salesManagers: [],
-      selectedSalesManager: "全国",
+      selectedSalesManager: "总计",
       rawData: [],
     };
   },
@@ -354,8 +337,8 @@ export default {
   margin-top: 20px;
 }
 
-/* 全国标签 */
 .national-label {
+  display: block;
   text-align: center;
   font-size: 24px;
   font-weight: bold;
@@ -363,7 +346,6 @@ export default {
   border: 2px solid #dcdfe6;
   border-radius: 4px;
   padding: 10px 40px;
-  display: inline-block;
   margin-left: 50%;
   transform: translateX(-50%);
   margin-bottom: 20px;
@@ -371,23 +353,18 @@ export default {
 
 /* 总统计信息 */
 .total-stat {
+  width: inherit;
   font-size: 18px;
+  width: 350px;
   font-weight: bold;
   padding: 10px 20px;
   border-radius: 4px;
   margin-bottom: 20px;
-  display: inline-block;
+  display: block;
 }
 
 .auth-no-implant {
-  background-color: #ecf5ff;
-  border: 1px solid #d9ecff;
-  color: #333;
-}
-
-.implant-no-auth {
-  background-color: #fff7e6;
-  border: 1px solid #fff0cc;
+  border: 2px solid rgb(79, 113, 190);
   color: #333;
 }
 
@@ -411,55 +388,50 @@ export default {
 
 /* 原因盒子 */
 .reason-box {
+  width: 130px;
+  height: 160px;
   background-color: white;
-  border: 2px solid;
-  border-radius: 8px;
+  border: 3px solid;
+  border-radius: 18px;
+  border-color: rgba(217, 217, 217);
+  font-weight: bold;
   padding: 15px;
-  width: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
   text-align: center;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   transition: all 0.3s ease;
+  position: relative;
 }
 
-/* 蓝色流程样式 */
-.blue-flow .reason-box {
-  border-color: #409eff;
-}
-
-/* 橙色流程样式 */
-.orange-flow .reason-box {
-  border-color: #e6a23c;
-}
-
-/* 高亮项样式 */
+/* 高亮项样式 - 调整为更亮的黄色背景 */
 .reason-box.highlight {
-  background-color: #fff3cd;
-  border-color: #ffeeba;
+  background-color: rgba(255, 255, 84);
   font-weight: bold;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
-/* 原因数量 */
+/* 原因数量 - 调整字体大小和位置 */
 .reason-count {
-  font-size: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   font-weight: bold;
   margin-bottom: 5px;
-}
-
-/* 变化量 */
-.reason-change {
-  font-size: 14px;
-  margin-bottom: 10px;
-}
-
-/* 原因描述 */
-.reason-desc {
-  font-size: 12px;
-  line-height: 1.4;
   color: #333;
-  word-break: break-word;
 }
 
-/* 箭头样式 */
+/* 变化量 - 调整字体大小和显示位置 */
+.reason-change {
+  font-size: 16px;
+  margin-bottom: 10px;
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 12px;
+}
+
+/* 箭头样式 - 重新设计为更圆润的样式 */
 .flow-arrow {
   display: flex;
   align-items: center;
@@ -468,9 +440,10 @@ export default {
 }
 
 .arrow-line {
-  height: 4px;
+  height: 6px;
   width: 40px;
   position: relative;
+  border-radius: 3px;
 }
 
 /* 蓝色箭头 */
@@ -483,18 +456,18 @@ export default {
   background-color: #e6a23c;
 }
 
-/* 箭头头部 */
+/* 箭头头部 - 调整为更圆润的样式 */
 .arrow-line::after {
   content: "";
   position: absolute;
-  right: -8px;
+  right: -10px;
   top: 50%;
   transform: translateY(-50%);
   width: 0;
   height: 0;
-  border-left: 8px solid;
-  border-top: 6px solid transparent;
-  border-bottom: 6px solid transparent;
+  border-left: 10px solid;
+  border-top: 8px solid transparent;
+  border-bottom: 8px solid transparent;
 }
 
 .arrow-line.blue::after {
@@ -505,13 +478,37 @@ export default {
   border-left-color: #e6a23c;
 }
 
-/* 增减样式 */
+.implant-no-auth {
+  border: 2px solid #e6a23c;
+  background-color: #fff7e6;
+  color: #333;
+}
+
+/* 增减样式 - 调整颜色和粗细 */
 .increase {
-  color: #67c23a;
+  color: rgb(79, 113, 190);
+  font-weight: bold;
 }
 
 .decrease {
   color: #f56c6c;
+  font-weight: bold;
+}
+
+/* 全国标签 - 调整样式 */
+.national-label {
+  text-align: center;
+  font-size: 28px;
+  font-weight: bold;
+  background-color: white;
+  border: 3px solid #dcdfe6;
+  border-radius: 6px;
+  padding: 12px 50px;
+  display: inline-block;
+  margin-left: 50%;
+  transform: translateX(-50%);
+  margin-bottom: 25px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 /* 备注信息 */
