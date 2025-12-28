@@ -52,43 +52,59 @@
     <!-- 数据分析结果 -->
     <div class="analysis-result" v-if="analysisData">
       <!-- 全国标签 -->
-      <div class="national-label">全国</div>
+      <div class="national-label">{{ selectedSalesManager }}</div>
 
       <!-- 有授权无植入统计 -->
       <div class="total-stat auth-no-implant">
-        有授权无植入医院数量：{{ analysisData.authorizedNoImplant.total }}家，
+        有授权无植入医院数量：{{
+          analysisData[selectedSalesManager]?.authorizedNoImplant?.total || 0
+        }}家，
         <span
           :class="
-            analysisData.authorizedNoImplant.change > 0
+            analysisData[selectedSalesManager]?.authorizedNoImplant?.change > 0
               ? 'increase'
               : 'decrease'
           "
         >
-          {{ analysisData.authorizedNoImplant.change > 0 ? "↑" : "↓"
-          }}{{ Math.abs(analysisData.authorizedNoImplant.change) }}
+          {{
+            analysisData[selectedSalesManager]?.authorizedNoImplant?.change > 0
+              ? "↑"
+              : "↓"
+          }}{{
+            Math.abs(
+              analysisData[selectedSalesManager]?.authorizedNoImplant?.change ||
+                0
+            )
+          }}
         </span>
       </div>
 
       <!-- 有授权无植入原因流程图 -->
       <div class="flow-chart blue-flow">
         <div
-          v-for="(reason, index) in analysisData.authorizedNoImplant.reasons"
+          v-for="(item, index) in analysisData[selectedSalesManager]
+            ?.authorizedNoImplant?.data || []"
           :key="index"
           class="flow-item"
         >
-          <div class="reason-box" :class="reason.highlight ? 'highlight' : ''">
-            <div class="reason-count">{{ reason.count }}家</div>
+          <div class="reason-box" :class="item.highlight ? 'highlight' : ''">
+            <div class="reason-count">{{ item.count || 0 }}家</div>
             <div
               class="reason-change"
-              :class="reason.change > 0 ? 'increase' : 'decrease'"
+              :class="item.change > 0 ? 'increase' : 'decrease'"
             >
-              {{ reason.change > 0 ? "↑" : "↓" }}{{ Math.abs(reason.change) }}
+              {{ item.change > 0 ? "↑" : "↓" }}{{ Math.abs(item.change || 0) }}
             </div>
-            <div class="reason-desc">{{ reason.description }}</div>
+            <div class="reason-desc">{{ item.reason }}</div>
           </div>
           <div
             class="flow-arrow"
-            v-if="index < analysisData.authorizedNoImplant.reasons.length - 1"
+            v-if="
+              index <
+              analysisData[selectedSalesManager]?.authorizedNoImplant?.data
+                ?.length -
+                1
+            "
           >
             <div class="arrow-line blue"></div>
           </div>
@@ -97,39 +113,56 @@
 
       <!-- 有植入无授权统计 -->
       <div class="total-stat implant-no-auth">
-        有植入无授权医院数量：{{ analysisData.implantNoAuthorized.total }}家，
+        有植入无授权医院数量：{{
+          analysisData[selectedSalesManager]?.implantNoAuthorized?.total || 0
+        }}家，
         <span
           :class="
-            analysisData.implantNoAuthorized.change > 0
+            analysisData[selectedSalesManager]?.implantNoAuthorized?.change > 0
               ? 'increase'
               : 'decrease'
           "
         >
-          {{ analysisData.implantNoAuthorized.change > 0 ? "↑" : "↓"
-          }}{{ Math.abs(analysisData.implantNoAuthorized.change) }}
+          {{
+            analysisData[selectedSalesManager]?.implantNoAuthorized?.change > 0
+              ? "↑"
+              : "↓"
+          }}{{
+            Math.abs(
+              analysisData[selectedSalesManager]?.implantNoAuthorized?.change ||
+                0
+            )
+          }}
         </span>
       </div>
 
       <!-- 有植入无授权原因流程图 -->
       <div class="flow-chart orange-flow">
         <div
-          v-for="(reason, index) in analysisData.implantNoAuthorized.reasons"
+          v-for="(reason, index) in analysisData[selectedSalesManager]
+            ?.implantNoAuthorized?.data || []"
           :key="index"
           class="flow-item"
         >
           <div class="reason-box" :class="reason.highlight ? 'highlight' : ''">
-            <div class="reason-count">{{ reason.count }}家</div>
+            <div class="reason-count">{{ reason.count || 0 }}家</div>
             <div
               class="reason-change"
               :class="reason.change > 0 ? 'increase' : 'decrease'"
             >
-              {{ reason.change > 0 ? "↑" : "↓" }}{{ Math.abs(reason.change) }}
+              {{ reason.change > 0 ? "↑" : "↓"
+              }}{{ Math.abs(reason.change || 0) }}
             </div>
-            <div class="reason-desc">{{ reason.description }}</div>
+            <div class="reason-desc">{{ reason.reason }}</div>
           </div>
           <div
             class="flow-arrow"
-            v-if="index < analysisData.implantNoAuthorized.reasons.length - 1"
+            v-if="
+              index <
+              analysisData[selectedSalesManager]?.implantNoAuthorized?.data
+                ?.length -
+                1
+            "
           >
             <div class="arrow-line orange"></div>
           </div>
@@ -171,7 +204,7 @@ export default {
 
     // 解析
     processSummaryData(summarySheet) {
-      const data = [];
+      const data = {};
 
       // 取summarySheet第一行数据
       const firstRow = XLSX.utils.sheet_to_json(summarySheet, {
@@ -185,10 +218,11 @@ export default {
         const row = XLSX.utils.sheet_to_json(summarySheet, {
           header: 1,
         })[i];
-        console.log(row);
         let cell = {
           name: row[0],
           data: [],
+          total: 0,
+          change: 0,
         };
         for (let j = 1; j < row.length; j = j + 2) {
           cell.data.push({
@@ -197,7 +231,10 @@ export default {
             change: row[j + 1],
           });
         }
-        data.push(cell);
+        const lastData = cell.data.pop();
+        cell.total = lastData.count;
+        cell.change = lastData.change;
+        data[cell.name] = cell;
       }
       return data;
     },
@@ -247,11 +284,8 @@ export default {
         // 提取销售经理列表
         this.extractSalesManagers(summary1Data, summary2Data);
         // 分析数据
-        this.analysisData = this.analyzeData(
-          summary1Data,
-          summary2Data,
-          this.selectedSalesManager
-        );
+        this.analysisData = this.analyzeData(summary1Data, summary2Data);
+        console.log(this.analysisData, "analysisData");
 
         this.$message.success("文件解析完成！");
       } catch (error) {
@@ -271,25 +305,27 @@ export default {
     },
 
     // 提取销售经理列表
-    extractSalesManagers(summary1Data, summary2Data) {},
-
-    // 销售经理选择变化
-    handleSalesManagerChange() {
-      const { summary1, summary2 } = this.rawData;
-      this.analysisData = this.analyzeData(
-        summary1,
-        summary2,
-        this.selectedSalesManager
-      );
+    extractSalesManagers(summary1Data, summary2Data) {
+      // 从两个工作表中提取销售经理
+      const managers1 = Object.keys(summary1Data);
+      const managers2 = Object.keys(summary2Data);
+      // 合并销售经理列表，去重
+      this.salesManagers = [...new Set([...managers1, ...managers2])];
+      console.log(this.salesManagers);
     },
 
     // 分析数据
-    analyzeData(summary1Data, summary2Data, salesManager) {
+    analyzeData(summary1Data, summary2Data) {
+      const data = {};
+      for (let saleManager of this.salesManagers) {
+        data[saleManager] = {
+          authorizedNoImplant: summary1Data[saleManager],
+          implantNoAuthorized: summary2Data[saleManager],
+        };
+      }
+      debugger;
       // 返回最终分析结果
-      return {
-        authorizedNoImplant: null,
-        implantNoAuthorized: null,
-      };
+      return data;
     },
   },
 };

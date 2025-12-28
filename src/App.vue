@@ -10,7 +10,7 @@
               <h2 class="logo">数据处理工具集</h2>
             </router-link>
           </div>
-          
+
           <!-- 导航菜单 -->
           <el-menu
             :default-active="activeIndex"
@@ -21,26 +21,38 @@
             active-text-color="#ffd04b"
             class="nav-menu"
           >
-            <el-menu-item 
-              v-for="menu in menus" 
-              :key="menu.path" 
+            <el-menu-item
+              v-for="menu in menus"
+              :key="menu.path"
               :index="menu.path"
             >
               {{ menu.label }}
             </el-menu-item>
           </el-menu>
-          
+
           <!-- 用户信息 -->
           <div class="user-info">
-            <el-button v-if="!isLoggedIn" type="primary" plain @click="$router.push('/login')">
+            <el-button
+              v-if="!isLoggedIn"
+              type="primary"
+              plain
+              @click="$router.push('/login')"
+            >
               <el-icon><User /></el-icon> 登录
             </el-button>
-            
+
             <el-dropdown v-if="isLoggedIn" @command="handleCommand">
               <span class="el-dropdown-link">
                 <el-avatar :size="32" :icon="UserFilled" />
-                {{ currentUser ? currentUser.username : '用户' }}
-                <el-tag v-if="isAdmin" type="danger" size="small" effect="dark" class="admin-tag">管理员</el-tag>
+                {{ currentUser ? currentUser.username : "用户" }}
+                <el-tag
+                  v-if="isAdmin"
+                  type="danger"
+                  size="small"
+                  effect="dark"
+                  class="admin-tag"
+                  >管理员</el-tag
+                >
                 <el-icon class="el-icon--right"><ArrowDown /></el-icon>
               </span>
               <template #dropdown>
@@ -54,16 +66,16 @@
           </div>
         </div>
       </el-header>
-      
+
       <!-- 主要内容区域 -->
       <el-main class="app-main">
         <router-view />
       </el-main>
-      
+
       <!-- 页脚 -->
       <el-footer class="app-footer">
         <div class="footer-content">
-          <span>© 2023 数据处理工具集</span>
+          <span>©{{ new Date().getFullYear() }} 数据处理工具集</span>
         </div>
       </el-footer>
     </el-container>
@@ -71,71 +83,84 @@
 </template>
 
 <script>
-import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
-import { useRoute } from 'vue-router'
-import { User, UserFilled, ArrowDown, SwitchButton, DataAnalysis } from '@element-plus/icons-vue'
-import { getUser, isLoggedIn, isAdmin, getMenusByRole, logout } from './utils/auth'
+import { ref, computed, onMounted, onBeforeUnmount } from "vue";
+import { useRoute } from "vue-router";
+import {
+  User,
+  UserFilled,
+  ArrowDown,
+  SwitchButton,
+  DataAnalysis,
+} from "@element-plus/icons-vue";
+import {
+  getUser,
+  isLoggedIn,
+  isAdmin,
+  getMenusByRole,
+  logout,
+} from "./utils/auth";
 
 export default {
-  name: 'App',
+  name: "App",
   setup() {
-    const route = useRoute()
-    const activeIndex = computed(() => route.path)
-    
+    const route = useRoute();
+    const activeIndex = computed(() => route.path);
+
     return {
       activeIndex,
       User,
       UserFilled,
       ArrowDown,
       SwitchButton,
-      DataAnalysis
-    }
+      DataAnalysis,
+    };
   },
   data() {
     return {
       menus: [],
       currentUser: null,
       isLoggedIn: false,
-      isAdmin: false
-    }
+      isAdmin: false,
+    };
   },
   created() {
     // 初始化用户状态
-    this.updateUserState()
+    this.updateUserState();
   },
   mounted() {
     // 监听路由变化，更新用户状态
     this.$router.beforeEach((to, from, next) => {
-      this.updateUserState()
-      next()
-    })
+      this.updateUserState();
+      next();
+    });
   },
   methods: {
     updateUserState() {
-      this.currentUser = getUser()
-      this.isLoggedIn = isLoggedIn()
-      this.isAdmin = isAdmin()
-      this.menus = getMenusByRole()
+      this.currentUser = getUser();
+      this.isLoggedIn = isLoggedIn();
+      this.isAdmin = isAdmin();
+      this.menus = getMenusByRole();
     },
     handleCommand(command) {
-      if (command === 'logout') {
-        this.handleLogout()
+      if (command === "logout") {
+        this.handleLogout();
       }
     },
     handleLogout() {
-      logout()
-      this.updateUserState()
-      this.$router.push('/login')
-    }
-  }
-}
+      logout();
+      this.updateUserState();
+      this.$router.push("/login");
+    },
+  },
+};
 </script>
 
 <style>
 body {
   margin: 0;
   padding: 0;
-  font-family: 'Helvetica Neue', Helvetica, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', Arial, sans-serif;
+  font-family: "Helvetica Neue", Helvetica, "PingFang SC", "Hiragino Sans GB",
+    "Microsoft YaHei", Arial, sans-serif;
 }
 
 .app-container {
@@ -144,7 +169,7 @@ body {
 
 .app-header {
   padding: 0;
-  background: linear-gradient(135deg, #409EFF, #2c6dd5);
+  background: linear-gradient(135deg, #409eff, #2c6dd5);
   color: #fff;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
   position: relative;
@@ -152,13 +177,17 @@ body {
 }
 
 .app-header::before {
-  content: '';
+  content: "";
   position: absolute;
   top: -50%;
   left: -50%;
   width: 200%;
   height: 200%;
-  background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 70%);
+  background: radial-gradient(
+    circle,
+    rgba(255, 255, 255, 0.1) 0%,
+    rgba(255, 255, 255, 0) 70%
+  );
   z-index: 1;
 }
 
