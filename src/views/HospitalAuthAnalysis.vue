@@ -105,6 +105,10 @@
             </div>
           </div>
         </div>
+        <!-- 添加蓝色箭头，最后一个flow-item不显示箭头 -->
+        <div class="flow-arrow">
+          <div class="arrow-line blue"></div>
+        </div>
       </div>
 
       <!-- 有植入无授权原因流程图 -->
@@ -134,6 +138,10 @@
               </span>
             </div>
           </div>
+        </div>
+        <!-- 添加橙色箭头，最后一个flow-item不显示箭头 -->
+        <div class="flow-arrow" style="top: 70px">
+          <div class="arrow-line orange"></div>
         </div>
       </div>
 
@@ -355,10 +363,10 @@ export default {
 .total-stat {
   width: inherit;
   font-size: 18px;
-  width: 350px;
+  width: 380px;
   font-weight: bold;
   padding: 10px 20px;
-  border-radius: 4px;
+  border-radius: 8px;
   margin-bottom: 20px;
   display: block;
 }
@@ -370,6 +378,7 @@ export default {
 
 /* 流程图表 */
 .flow-chart {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -380,6 +389,7 @@ export default {
 
 /* 流程项 */
 .flow-item {
+  z-index: 2;
   display: flex;
   align-items: center;
   flex: 1;
@@ -433,6 +443,11 @@ export default {
 
 /* 箭头样式 - 重新设计为更圆润的样式 */
 .flow-arrow {
+  position: absolute;
+  /* 居中 */
+  top: 100px;
+  left: -60px;
+  z-index: 1;
   display: flex;
   align-items: center;
   margin: 0 10px;
@@ -440,47 +455,46 @@ export default {
 }
 
 .arrow-line {
-  height: 6px;
-  width: 40px;
+  height: 30px;
+  width: 1400px;
   position: relative;
   border-radius: 3px;
 }
 
 /* 蓝色箭头 */
 .arrow-line.blue {
-  background-color: #409eff;
+  background-color: rgb(79, 113, 190);
 }
 
 /* 橙色箭头 */
 .arrow-line.orange {
-  background-color: #e6a23c;
+  background-color: rgb(222, 131, 68);
 }
 
 /* 箭头头部 - 调整为更圆润的样式 */
 .arrow-line::after {
   content: "";
   position: absolute;
-  right: -10px;
+  right: -15px;
   top: 50%;
   transform: translateY(-50%);
   width: 0;
   height: 0;
-  border-left: 10px solid;
-  border-top: 8px solid transparent;
-  border-bottom: 8px solid transparent;
+  border-left: 30px solid;
+  border-top: 30px solid transparent;
+  border-bottom: 30px solid transparent;
 }
 
 .arrow-line.blue::after {
-  border-left-color: #409eff;
+  border-left-color: rgb(79, 113, 190);
 }
 
 .arrow-line.orange::after {
-  border-left-color: #e6a23c;
+  border-left-color: rgb(222, 131, 68);
 }
 
 .implant-no-auth {
-  border: 2px solid #e6a23c;
-  background-color: #fff7e6;
+  border: 2px solid rgb(222, 131, 68);
   color: #333;
 }
 
