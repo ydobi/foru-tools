@@ -73,8 +73,9 @@
       <div class="total-stat auth-no-implant">
         有授权无植入医院数量：{{
           analysisData[selectedSalesManager]?.authorizedNoImplant?.total || 0
-        }}家，
+        }}家
         <span
+          v-if="analysisData[selectedSalesManager]?.authorizedNoImplant?.change"
           :class="
             analysisData[selectedSalesManager]?.authorizedNoImplant?.change > 0
               ? 'increase'
@@ -129,7 +130,7 @@
       <!-- 有植入无授权原因流程图 -->
       <div class="flow-chart orange-flow">
         <!-- 添加橙色箭头，最后一个flow-item不显示箭头 -->
-        <div class="flow-arrow" style="top: 70px; left: -160px">
+        <div class="flow-arrow" style="top: 70px">
           <div class="arrow-line orange"></div>
         </div>
         <div
@@ -150,6 +151,7 @@
                 >{{ reason.count || 0 }}家
                 <span
                   class="reason-change"
+                  v-if="reason.change"
                   :class="reason.change > 0 ? 'increase' : 'decrease'"
                   >{{ reason.change > 0 ? "↑" : "↓"
                   }}{{ Math.abs(reason.change || 0) }}
@@ -164,8 +166,9 @@
       <div class="total-stat implant-no-auth">
         有植入无授权医院数量：{{
           analysisData[selectedSalesManager]?.implantNoAuthorized?.total || 0
-        }}家，
+        }}家
         <span
+          v-if="analysisData[selectedSalesManager]?.implantNoAuthorized?.change"
           :class="
             analysisData[selectedSalesManager]?.implantNoAuthorized?.change > 0
               ? 'increase'
@@ -358,11 +361,11 @@ export default {
           backgroundColor: "#ffffff",
           allowTaint: false,
           logging: false,
-          windowWidth: element.scrollWidth + 100, // 向右扩展100px
+          windowWidth: element.scrollWidth + 30, // 向左扩展30px
           windowHeight: element.scrollHeight,
-          x: 0,
+          x: -30, // 向左偏移30px开始截图
           y: 0,
-          width: element.offsetWidth + 100, // 向右扩展100px
+          width: element.offsetWidth + 30, // 增加30px宽度包含向左扩展区域
           height: element.offsetHeight,
         };
 
@@ -419,11 +422,11 @@ export default {
             backgroundColor: "#ffffff",
             allowTaint: false,
             logging: false,
-            windowWidth: element.scrollWidth + 100, // 向右扩展100px
+            windowWidth: element.scrollWidth + 30, // 向左扩展30px
             windowHeight: element.scrollHeight,
-            x: 0,
+            x: -30, // 向左偏移30px开始截图
             y: 0,
-            width: element.offsetWidth + 100, // 向右扩展100px
+            width: element.offsetWidth + 30, // 增加30px宽度包含向左扩展区域
             height: element.offsetHeight,
           };
 
@@ -481,7 +484,7 @@ export default {
 
 .analysis-result {
   margin-top: 20px;
-  padding: 0 50px;
+  /* padding: 0 50px; */
 }
 
 .national-label {
@@ -501,7 +504,7 @@ export default {
 /* 总统计信息 */
 .total-stat {
   width: inherit;
-  font-size: 18px;
+  font-size: 20px;
   width: 380px;
   font-weight: bold;
   padding: 10px 20px;
@@ -511,7 +514,7 @@ export default {
 }
 
 .auth-no-implant {
-  border: 2px solid rgb(79, 113, 190);
+  border: 3px solid rgb(79, 113, 190);
   color: #333;
 }
 
@@ -537,13 +540,14 @@ export default {
 
 /* 原因盒子 */
 .reason-box {
-  width: 130px;
-  height: 160px;
+  width: 140px;
+  height: 200px;
   background-color: white;
   border: 3px solid;
   border-radius: 18px;
   border-color: rgba(217, 217, 217);
-  font-weight: bold;
+  font-weight: 800;
+  font-size: 20px;
   padding: 15px;
   display: flex;
   flex-direction: column;
@@ -552,6 +556,8 @@ export default {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   transition: all 0.3s ease;
   position: relative;
+  font-family: "Microsoft YaHei", "微软雅黑", "PingFang SC", "Hiragino Sans GB",
+    sans-serif;
 }
 
 /* 高亮项样式 - 调整为更亮的黄色背景 */
@@ -567,14 +573,14 @@ export default {
   flex-direction: column;
   align-items: center;
   font-weight: bold;
+  font-size: 20px;
   margin-bottom: 5px;
   color: #333;
 }
 
 /* 变化量 - 调整字体大小和显示位置 */
 .reason-change {
-  font-size: 16px;
-  margin-bottom: 10px;
+  font-size: 20px;
   display: inline-block;
   padding: 2px 8px;
   border-radius: 12px;
@@ -585,7 +591,7 @@ export default {
   position: absolute;
   /* 居中 */
   top: 100px;
-  left: -160px; /* 向左平移100px，从-60px调整为-160px */
+  left: -70px; /* 向左平移100px，从-60px调整为-160px */
   z-index: 0; /* 调整为0，确保在底层 */
   display: flex;
   align-items: center;
@@ -635,7 +641,7 @@ export default {
 }
 
 .implant-no-auth {
-  border: 2px solid rgb(222, 131, 68);
+  border: 3px solid rgb(222, 131, 68);
   color: #333;
 }
 
@@ -646,7 +652,7 @@ export default {
 }
 
 .decrease {
-  color: #f56c6c;
+  color: red;
   font-weight: bold;
 }
 
@@ -672,11 +678,11 @@ export default {
   padding: 20px;
   border-radius: 8px;
   margin-top: 30px;
-  font-size: 14px;
+  font-size: 20px;
 }
 
 .remarks h3 {
-  font-size: 16px;
+  font-size: 20px;
   margin-bottom: 10px;
   color: #303133;
 }
