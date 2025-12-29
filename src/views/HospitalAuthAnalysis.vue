@@ -228,6 +228,7 @@ export default {
         const row = XLSX.utils.sheet_to_json(summarySheet, {
           header: 1,
         })[i];
+        if (!Array.isArray(row) || row.length === 0) continue;
         let cell = {
           name: row[0],
           data: [],
@@ -333,7 +334,6 @@ export default {
           implantNoAuthorized: summary2Data[saleManager],
         };
       }
-      debugger;
       // 返回最终分析结果
       return data;
     },
