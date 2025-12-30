@@ -59,8 +59,8 @@
         :key="index"
         class="chart-wrapper"
       >
-        <div class="chart-container">
-          <h2>
+        <div class="css-chart-container">
+          <h2 class="product-title">
             {{ chart.productName }}
             合计{{ chart.total || 0 }}家
             <span :class="chart.change > 0 ? 'increase' : 'decrease'">
@@ -68,7 +68,34 @@
               }}{{ Math.abs(chart.change || 0) }}
             </span>
           </h2>
-          <div :ref="(el) => (chartRefs[index] = el)" class="chart"></div>
+
+          <!-- CSS 柱状图 -->
+          <div class="css-chart" :style="{ backgroundColor: chart.bgColor }">
+            <!-- 柱子容器 -->
+            <div class="chart-bars">
+              <div
+                v-for="(reason, reasonIndex) in chart.reasons"
+                :key="reasonIndex"
+                class="bar-item"
+              >
+                <!-- 柱子 -->
+                <div class="bar-wrapper">
+                  <div
+                    class="bar"
+                    :style="{
+                      height: `${reason.value * 30}px`, // 根据数值计算高度
+                      backgroundColor: chart.color, // 使用主题色
+                      opacity: 1 - reasonIndex * 0.15,
+                    }"
+                  >
+                    <div class="bar-value">{{ reason.value }}</div>
+                  </div>
+                </div>
+                <!-- 原因标签 -->
+                <div class="bar-label">{{ reason.reasonName }}</div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -89,13 +116,7 @@ export default {
       selectedSalesManager: "",
       rawData: {},
       chartsData: [],
-      chartRefs: [],
-      charts: [],
     };
-  },
-  beforeUnmount() {
-    // 销毁所有图表实例
-    this.charts.forEach((chart) => chart.dispose());
   },
   methods: {
     // 处理文件选择
@@ -268,9 +289,7 @@ export default {
 
     // 生成图表数据
     generateChartsData() {
-      // 清空之前的图表
-      this.charts.forEach((chart) => chart.dispose());
-      this.charts = [];
+      // 清空之前的图表数据
       this.chartsData = [];
 
       console.log("当前analysisData:", this.analysisData);
@@ -282,13 +301,26 @@ export default {
       console.log("找到的销售经理数据:", managerData);
 
       if (managerData) {
+        // 交替使用蓝色和橙色主题色
+        const themeColors = [
+          "#5470c6", // 蓝色
+          "#fac858", // 橙色
+        ];
+
+        // 交替使用背景色
+        const backgroundColors = [
+          "rgb(165, 194, 227)", // 浅蓝色背景
+          "rgb(241, 205, 177)", // 浅橙色背景
+        ];
+
         // 遍历每个产品
-        managerData.data.forEach((product) => {
+        managerData.data.forEach((product, index) => {
           console.log("处理产品:", product);
 
-          // 提取所有原因和对应数量
-          const reasons = product.reasons.map((reason) => reason.reasonName);
-          const values = product.reasons.map((reason) => reason.value);
+          // 使用主题色
+          const color = themeColors[index % themeColors.length];
+          // 使用背景色
+          const bgColor = backgroundColors[index % backgroundColors.length];
 
           // 获取产品合计数量和变化
           const total = product.total || 0;
@@ -296,18 +328,18 @@ export default {
           const change =
             product.reasons.length > 0 ? product.reasons[0].change : 0;
 
-          console.log("产品原因:", reasons);
-          console.log("产品数值:", values);
+          console.log("产品原因:", product.reasons);
           console.log("产品合计:", total);
           console.log("产品变化:", change);
 
           // 创建图表数据
           const chartData = {
             productName: product.productName,
-            reasons: reasons,
-            values: values,
+            reasons: product.reasons, // 直接使用原因对象数组
             total: total,
             change: change,
+            color: color, // 添加主题色
+            bgColor: bgColor, // 添加背景色
           };
 
           this.chartsData.push(chartData);
@@ -317,83 +349,6 @@ export default {
       }
 
       console.log("最终图表数据:", this.chartsData);
-
-      // 等待DOM更新后初始化图表
-      this.$nextTick(() => {
-        this.initCharts();
-      });
-    },
-
-    // 初始化图表
-    initCharts() {
-      this.chartsData.forEach((chartData, index) => {
-        const chartDom = this.chartRefs[index];
-        if (chartDom && window.echarts) {
-          const chart = window.echarts.init(chartDom);
-          this.charts.push(chart);
-
-          // 交替使用蓝色和橙色主题色
-          const themeColors = [
-            "#5470c6", // 蓝色
-            "#fac858", // 橙色
-          ];
-          const baseColor = themeColors[index % themeColors.length];
-
-          // 配置图表
-          const option = {
-            tooltip: {
-              trigger: "axis",
-              axisPointer: {
-                type: "shadow",
-              },
-              formatter: "{b}: {c}",
-            },
-            legend: {
-              data: chartData.reasons, // 显示所有原因
-              bottom: 0,
-              orient: "horizontal",
-            },
-            grid: {
-              left: "3%",
-              right: "4%",
-              bottom: "15%", // 增加底部空间容纳图例
-              top: "15%",
-              containLabel: true,
-            },
-            xAxis: {
-              type: "category",
-              data: ["数量"], // 只有一个分类
-            },
-            yAxis: {
-              type: "value",
-              name: "数量",
-            },
-            series: chartData.reasons.map((reason, i) => {
-              // 透明底递减区分，每个原因柱子使用不同透明度
-              const opacity = 1 - i * 0.15; // 透明度从1递减到约0.35
-
-              return {
-                name: reason,
-                type: "bar",
-                emphasis: {
-                  focus: "series",
-                },
-                data: [chartData.values[i]],
-                itemStyle: {
-                  color: baseColor,
-                  opacity: opacity, // 透明度递减
-                  borderRadius: [4, 4, 0, 0], // 顶部圆角
-                },
-                barWidth: 30, // 固定柱子宽度为30px
-              };
-            }),
-            barGap: "20%", // 柱子之间的间距
-            barCategoryGap: "40%", // 分类之间的间距
-          };
-
-          chart.setOption(option);
-        }
-      });
     },
   },
 };
@@ -423,36 +378,111 @@ export default {
   overflow-x: auto;
   white-space: nowrap;
   padding-bottom: 20px;
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
 }
 
 .chart-wrapper {
   display: inline-block;
-  vertical-align: top;
-  margin-right: 20px;
+  vertical-align: bottom;
+  margin-right: 10px;
+  width: auto;
 }
 
-.chart-container {
-  margin-bottom: 40px;
-  padding: 20px;
-  background-color: #f9f9f9;
+.css-chart-container {
+  margin-bottom: 30px;
+  padding: 10px;
+  background-color: transparent;
   border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  width: 600px; /* 固定图表宽度 */
-  height: 500px; /* 固定图表高度 */
-}
-
-.chart-container h2 {
+  width: auto; /* 根据内容自适应宽度 */
+  min-width: 120px; /* 设置最小宽度 */
+  height: auto; /* 根据内容自适应高度 */
+  min-height: 250px; /* 设置最小高度 */
   text-align: center;
-  margin-bottom: 20px;
-  color: #333;
-  font-size: 18px;
-  white-space: normal;
+  display: inline-block;
 }
 
-.chart {
-  margin: 0 auto;
+.product-title {
+  text-align: center;
+  margin-bottom: 10px;
+  color: #333;
+  font-size: 14px;
+  font-weight: bold;
+  white-space: normal;
+  line-height: 1.2;
+}
+
+.css-chart {
   width: 100%;
-  height: calc(100% - 60px); /* 减去标题和内边距 */
+  height: auto;
+  min-height: 200px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  position: relative;
+  padding: 10px 0;
+}
+
+.chart-bars {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 5px; /* 更小的间距 */
+  height: auto;
+  min-height: 180px;
+  position: relative;
+}
+
+.bar-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  width: 20px;
+}
+
+.bar-wrapper {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  height: 100%;
+  position: relative;
+}
+
+.bar {
+  width: 20px; /* 调整柱子宽度 */
+  border-radius: 4px 4px 0 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.bar-value {
+  color: #333;
+  font-size: 12px;
+  font-weight: bold;
+  margin-top: -5px;
+  position: absolute;
+  top: -18px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.bar-label {
+  color: #666;
+  font-size: 11px;
+  text-align: center;
+  line-height: 14px; /* 调整行高 */
+  writing-mode: vertical-rl; /* 从上往下书写 */
+  text-orientation: upright; /* 文字直立 */
+  width: auto;
+  height: 80px;
+  white-space: nowrap;
+  margin-top: 5px;
+  display: flex;
 }
 
 /* 增减变化样式 */
