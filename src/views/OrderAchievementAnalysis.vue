@@ -79,7 +79,7 @@ export default {
   data() {
     return {
       selectedFile: null,
-      analysisData: null,
+      analysisData: [],
       salesManagers: [],
       selectedSalesManager: "",
       rawData: {},
@@ -226,7 +226,7 @@ export default {
       }
 
       // 转换为数组
-      this.analysisData = Array.from(managerMap.values());
+      this.analysisData = managerMap;
       console.log("构造的数据结构:", this.analysisData);
     },
 
@@ -265,17 +265,25 @@ export default {
       this.charts = [];
       this.chartsData = [];
 
+      console.log("当前analysisData:", this.analysisData);
+      console.log("当前选中的销售经理:", this.selectedSalesManager);
+
       // 从analysisData中获取当前销售经理的数据
-      const managerData = this.analysisData.find(
-        (item) => item.name === this.selectedSalesManager
-      );
+      const managerData = this.analysisData.get(this.selectedSalesManager);
+
+      console.log("找到的销售经理数据:", managerData);
 
       if (managerData) {
         // 遍历每个产品
         managerData.data.forEach((product) => {
+          console.log("处理产品:", product);
+
           // 提取所有原因和对应数量
           const reasons = product.reasons.map((reason) => reason.reasonName);
           const values = product.reasons.map((reason) => reason.value);
+
+          console.log("产品原因:", reasons);
+          console.log("产品数值:", values);
 
           // 创建图表数据
           const chartData = {
@@ -286,7 +294,11 @@ export default {
 
           this.chartsData.push(chartData);
         });
+      } else {
+        console.log("未找到销售经理数据");
       }
+
+      console.log("最终图表数据:", this.chartsData);
 
       // 等待DOM更新后初始化图表
       this.$nextTick(() => {
@@ -302,6 +314,13 @@ export default {
           const chart = window.echarts.init(chartDom);
           this.charts.push(chart);
 
+          // 交替使用蓝色和橙色主题色
+          const themeColors = [
+            "#5470c6", // 蓝色
+            "#fac858", // 橙色
+          ];
+          const baseColor = themeColors[index % themeColors.length];
+
           // 配置图表
           const option = {
             tooltip: {
@@ -309,35 +328,45 @@ export default {
               axisPointer: {
                 type: "shadow",
               },
+              formatter: "{b}: {c}",
             },
             legend: {
-              data: chartData.reasons,
+              data: chartData.reasons, // 显示所有原因
+              bottom: 0,
+              orient: "horizontal",
             },
             grid: {
               left: "3%",
               right: "4%",
-              bottom: "3%",
+              bottom: "15%", // 增加底部空间容纳图例
+              top: "15%",
               containLabel: true,
             },
             xAxis: {
               type: "category",
-              data: ["订货达成率异常"],
+              data: ["数量"], // 只有一个分类
             },
             yAxis: {
               type: "value",
+              name: "数量",
             },
             series: chartData.reasons.map((reason, i) => {
+              // 透明底递减区分，每个原因柱子使用不同透明度
+              const opacity = 1 - i * 0.15; // 透明度从1递减到约0.35
+
               return {
                 name: reason,
                 type: "bar",
-                stack: "total",
                 emphasis: {
                   focus: "series",
                 },
-                itemStyle: {
-                  opacity: 0.7 + i * 0.1, // 不同原因使用不同透明度
-                },
                 data: [chartData.values[i]],
+                itemStyle: {
+                  color: baseColor,
+                  opacity: opacity, // 透明度递减
+                  borderRadius: [4, 4, 0, 0], // 顶部圆角
+                },
+                barWidth: "40%", // 调整柱子宽度
               };
             }),
           };
