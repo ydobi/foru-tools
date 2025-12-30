@@ -53,18 +53,23 @@
       class="analysis-result"
       v-if="selectedSalesManager && chartsData.length > 0"
     >
-      <!-- 每个产品一个图表 -->
+      <!-- 每个产品一个图表，横向排列 -->
       <div
         v-for="(chart, index) in chartsData"
         :key="index"
-        class="chart-container"
+        class="chart-wrapper"
       >
-        <h2>{{ chart.productName }}</h2>
-        <div
-          :ref="(el) => (chartRefs[index] = el)"
-          class="chart"
-          :style="{ width: '100%', height: '400px' }"
-        ></div>
+        <div class="chart-container">
+          <h2>
+            {{ chart.productName }}
+            合计{{ chart.total || 0 }}家
+            <span :class="chart.change > 0 ? 'increase' : 'decrease'">
+              {{ chart.change > 0 ? "↑" : "↓"
+              }}{{ Math.abs(chart.change || 0) }}
+            </span>
+          </h2>
+          <div :ref="(el) => (chartRefs[index] = el)" class="chart"></div>
+        </div>
       </div>
     </div>
   </div>
@@ -200,6 +205,9 @@ export default {
           value: value,
           change: 0, // 初始化为0，后续从orderData中更新
         });
+
+        // 计算产品合计数量
+        product.total = (product.total || 0) + value;
       }
 
       // 处理orderData - 销售经理姓名、产品名称、产品数量、对比上月变化
@@ -282,14 +290,24 @@ export default {
           const reasons = product.reasons.map((reason) => reason.reasonName);
           const values = product.reasons.map((reason) => reason.value);
 
+          // 获取产品合计数量和变化
+          const total = product.total || 0;
+          // 取第一个原因的change作为产品的增减变化（假设所有原因的change相同）
+          const change =
+            product.reasons.length > 0 ? product.reasons[0].change : 0;
+
           console.log("产品原因:", reasons);
           console.log("产品数值:", values);
+          console.log("产品合计:", total);
+          console.log("产品变化:", change);
 
           // 创建图表数据
           const chartData = {
             productName: product.productName,
             reasons: reasons,
             values: values,
+            total: total,
+            change: change,
           };
 
           this.chartsData.push(chartData);
@@ -366,9 +384,11 @@ export default {
                   opacity: opacity, // 透明度递减
                   borderRadius: [4, 4, 0, 0], // 顶部圆角
                 },
-                barWidth: "40%", // 调整柱子宽度
+                barWidth: 30, // 固定柱子宽度为30px
               };
             }),
+            barGap: "20%", // 柱子之间的间距
+            barCategoryGap: "40%", // 分类之间的间距
           };
 
           chart.setOption(option);
@@ -400,6 +420,15 @@ export default {
 
 .analysis-result {
   margin-top: 20px;
+  overflow-x: auto;
+  white-space: nowrap;
+  padding-bottom: 20px;
+}
+
+.chart-wrapper {
+  display: inline-block;
+  vertical-align: top;
+  margin-right: 20px;
 }
 
 .chart-container {
@@ -408,15 +437,32 @@ export default {
   background-color: #f9f9f9;
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  width: 600px; /* 固定图表宽度 */
+  height: 500px; /* 固定图表高度 */
 }
 
 .chart-container h2 {
   text-align: center;
   margin-bottom: 20px;
   color: #333;
+  font-size: 18px;
+  white-space: normal;
 }
 
 .chart {
   margin: 0 auto;
+  width: 100%;
+  height: calc(100% - 60px); /* 减去标题和内边距 */
+}
+
+/* 增减变化样式 */
+.increase {
+  color: #52c41a; /* 绿色表示增加 */
+  font-weight: bold;
+}
+
+.decrease {
+  color: #f5222d; /* 红色表示减少 */
+  font-weight: bold;
 }
 </style>
