@@ -81,6 +81,23 @@
         </el-card>
       </el-col>
       
+      <!-- 订货达成率异常分析 - 所有登录用户可见 -->
+      <el-col :xs="24" :sm="12" :md="8">
+        <el-card class="tool-card" shadow="hover">
+          <template #header>
+            <div class="card-header">
+              <span>订货达成率异常分析</span>
+              <el-tag type="success" size="small" effect="dark">所有用户</el-tag>
+            </div>
+          </template>
+          <div class="card-content">
+            <el-icon class="tool-icon"><DocumentIcon /></el-icon>
+            <p class="card-description">解析Excel文件，按销售经理和产品维度分析订货达成率异常原因。</p>
+            <el-button type="primary" @click="$router.push('/order-achievement-analysis')">使用工具</el-button>
+          </div>
+        </el-card>
+      </el-col>
+      
       <!-- 智能地图工具 - 仅管理员可见 -->
       <el-col v-if="isAdmin" :xs="24" :sm="12" :md="8">
         <el-card class="tool-card" shadow="hover">

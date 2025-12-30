@@ -5,6 +5,7 @@ import ExcelMerge from '../views/ExcelMerge.vue'
 import SmartMap from '../views/SmartMap.vue'
 import Login from '../views/Login.vue'
 import HospitalAuthAnalysis from '../views/HospitalAuthAnalysis.vue'
+import OrderAchievementAnalysis from '../views/OrderAchievementAnalysis.vue'
 import { isLoggedIn, hasRole } from '../utils/auth'
 
 const routes = [
@@ -50,6 +51,15 @@ const routes = [
     path: '/hospital-auth-analysis',
     name: 'HospitalAuthAnalysis',
     component: HospitalAuthAnalysis,
+    meta: { 
+      requiresAuth: true,
+      roles: ['admin', 'user'] // 管理员和普通用户都可以访问
+    }
+  },
+  {
+    path: '/order-achievement-analysis',
+    name: 'OrderAchievementAnalysis',
+    component: OrderAchievementAnalysis,
     meta: { 
       requiresAuth: true,
       roles: ['admin', 'user'] // 管理员和普通用户都可以访问

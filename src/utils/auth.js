@@ -66,13 +66,17 @@ export function getMenusByRole() {
       { name: 'CompanyRelation', path: '/company-relation', label: '公司关联关系处理' },
       { name: 'ExcelMerge', path: '/excel-merge', label: 'Excel文件合并' },
       { name: 'SmartMap', path: '/smart-map', label: '智能地图工具' },
-      { name: 'RoleManage', path: '/company-relation2', label: '表格数据合并（植入公司、授权公司、订货公司）' }
+      { name: 'RoleManage', path: '/company-relation2', label: '表格数据合并（植入公司、授权公司、订货公司）' },
+      { name: 'HospitalAuthAnalysis', path: '/hospital-auth-analysis', label: '医院授权&植入分析' },
+      { name: 'OrderAchievementAnalysis', path: '/order-achievement-analysis', label: '订货达成率异常分析' }
     ];
   } else {
     // 普通用户只能访问部分菜单
     return [
       ...commonMenus,
-      { name: 'ExcelMerge', path: '/excel-merge', label: 'Excel文件合并' }
+      { name: 'ExcelMerge', path: '/excel-merge', label: 'Excel文件合并' },
+      { name: 'HospitalAuthAnalysis', path: '/hospital-auth-analysis', label: '医院授权&植入分析' },
+      { name: 'OrderAchievementAnalysis', path: '/order-achievement-analysis', label: '订货达成率异常分析' }
     ];
   }
 }
