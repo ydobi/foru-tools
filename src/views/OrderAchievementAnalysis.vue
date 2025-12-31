@@ -63,7 +63,10 @@
           <h2 class="product-title">
             {{ chart.productName }}
             合计{{ chart.total || 0 }}家
-            <span :class="chart.change > 0 ? 'increase' : 'decrease'">
+            <span
+              v-if="chart.change"
+              :class="chart.change > 0 ? '' : 'decrease'"
+            >
               {{ chart.change > 0 ? "↑" : "↓"
               }}{{ Math.abs(chart.change || 0) }}
             </span>
