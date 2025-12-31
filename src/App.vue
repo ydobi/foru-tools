@@ -71,13 +71,6 @@
       <el-main class="app-main">
         <router-view />
       </el-main>
-
-      <!-- 页脚 -->
-      <el-footer class="app-footer">
-        <div class="footer-content">
-          <span>©{{ new Date().getFullYear() }} 数据处理工具集</span>
-        </div>
-      </el-footer>
     </el-container>
   </div>
 </template>
@@ -283,23 +276,9 @@ body {
 }
 
 .app-main {
-  min-height: calc(100vh - 120px);
+  min-height: calc(100vh - 30px);
   padding: 20px;
   background-color: #f5f7fa;
-}
-
-.app-footer {
-  height: 60px;
-  background-color: #f5f7fa;
-  border-top: 1px solid #e6e6e6;
-}
-
-.footer-content {
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #909399;
 }
 
 a {

@@ -2,122 +2,139 @@
   <div class="order-achievement-analysis">
     <h1>订货达成率异常分析</h1>
 
-    <!-- 文件上传区域 -->
-    <div class="upload-section">
-      <el-upload
-        ref="upload"
-        action="#"
-        accept=".xlsx,.xls"
-        :auto-upload="false"
-        :on-change="handleFileChange"
-        :show-file-list="true"
-      >
-        <el-button type="primary">选择Excel文件</el-button>
-        <template #tip>
-          <div class="el-upload__tip">
-            请选择包含订货达成率异常原因分析数据的Excel文件
-          </div>
-        </template>
-      </el-upload>
-      <el-button
-        type="success"
-        :disabled="!selectedFile"
-        @click="processFile"
-        style="margin-left: 10px"
-      >
-        处理文件
-      </el-button>
-    </div>
-
-    <!-- 销售经理选择器 -->
-    <div class="filter-section" v-if="salesManagers.length > 0">
-      <el-select
-        v-model="selectedSalesManager"
-        placeholder="请选择销售经理"
-        clearable
-        style="width: 200px"
-        @change="handleSalesManagerChange"
-      >
-        <el-option
-          v-for="manager in salesManagers"
-          :key="manager"
-          :label="manager"
-          :value="manager"
+    <!-- 顶部区域：文件上传和筛选器 -->
+    <div class="header-section">
+      <!-- 文件上传区域 -->
+      <div class="upload-section">
+        <el-upload
+          ref="upload"
+          action="#"
+          accept=".xlsx,.xls"
+          :auto-upload="false"
+          :on-change="handleFileChange"
+          :show-file-list="true"
         >
-        </el-option>
-      </el-select>
+          <el-button type="primary">选择Excel文件</el-button>
+          <template #tip>
+            <div class="el-upload__tip">
+              请选择包含订货达成率异常原因分析数据的Excel文件
+            </div>
+          </template>
+        </el-upload>
+        <el-button
+          type="success"
+          :disabled="!selectedFile"
+          @click="processFile"
+        >
+          处理文件
+        </el-button>
+      </div>
+
+      <!-- 销售经理选择器 -->
+      <div class="filter-section" v-if="salesManagers.length > 0">
+        <el-select
+          v-model="selectedSalesManager"
+          placeholder="请选择销售经理"
+          clearable
+          style="width: 200px"
+          @change="handleSalesManagerChange"
+        >
+          <el-option
+            v-for="manager in salesManagers"
+            :key="manager"
+            :label="manager"
+            :value="manager"
+          >
+          </el-option>
+        </el-select>
+        <el-button
+          type="info"
+          :disabled="!selectedSalesManager"
+          @click="exportToImage"
+        >
+          导出为图片
+        </el-button>
+        <el-button
+          type="warning"
+          :disabled="salesManagers.length === 0"
+          @click="exportAllToImage"
+        >
+          批量导出所有销售经理图片
+        </el-button>
+      </div>
     </div>
 
     <!-- 选中的销售经理名称 -->
     <div class="selected-manager" v-if="selectedSalesManager">
       <h3>{{ selectedSalesManager }}</h3>
     </div>
-
-    <!-- 数据分析结果 -->
-    <div
-      class="analysis-result"
-      v-if="selectedSalesManager && chartsData.length > 0"
-    >
-      <!-- 每个产品一个图表，横向排列 -->
+    <div class="analysis-result-container">
+      <!-- 数据分析结果 -->
       <div
-        v-for="(chart, index) in chartsData"
-        :key="index"
-        class="chart-wrapper"
+        class="analysis-result"
+        v-if="selectedSalesManager && chartsData.length > 0"
       >
-        <div class="css-chart-container">
-          <h2 class="product-title">
-            {{ chart.productName }}
-            合计{{ chart.total || 0 }}家
-            <span
-              v-if="chart.change"
-              :class="chart.change > 0 ? '' : 'decrease'"
-            >
-              {{ chart.change > 0 ? "↑" : "↓"
-              }}{{ Math.abs(chart.change || 0) }}
-            </span>
-          </h2>
-
-          <!-- CSS 柱状图 -->
-          <div
-            class="css-chart"
-            :style="{
-              backgroundColor: chart.bgColor, // 背景色
-              height: `${chart.containerHeight}px`, // 比例计算高度，基于total最大值
-            }"
-          >
-            <!-- 柱子容器 -->
-            <div class="chart-bars">
-              <div
-                v-for="(reason, reasonIndex) in chart.reasons"
-                :key="reasonIndex"
-                class="bar-item"
+        <!-- 每个产品一个图表，横向排列 -->
+        <div
+          v-for="(chart, index) in chartsData"
+          :key="index"
+          class="chart-wrapper"
+        >
+          <div class="css-chart-container">
+            <h2 class="product-title">
+              {{ chart.productName }}
+              合计{{ chart.total || 0 }}家
+              <span
+                v-if="chart.change"
+                :class="chart.change > 0 ? '' : 'decrease'"
               >
-                <!-- 柱子 -->
-                <div class="bar-wrapper">
-                  <div
-                    class="bar"
-                    :style="{
-                      height: `${reason.height}px`, // 比例计算高度，最大值不超过200px
-                      backgroundColor: chart.color,
-                      opacity: 1 - reasonIndex * 0.1, // 透明度渐变
-                    }"
-                  >
+                {{ chart.change > 0 ? "↑" : "↓"
+                }}{{ Math.abs(chart.change || 0) }}
+              </span>
+            </h2>
+
+            <!-- CSS 柱状图 -->
+            <div
+              class="css-chart"
+              :style="{
+                backgroundColor: chart.bgColor, // 背景色
+                height: `${chart.containerHeight}px`, // 比例计算高度，基于total最大值
+              }"
+            >
+              <!-- 柱子容器 -->
+              <div class="chart-bars">
+                <div
+                  v-for="(reason, reasonIndex) in chart.reasons"
+                  :key="reasonIndex"
+                  class="bar-item"
+                >
+                  <!-- 柱子 -->
+                  <div class="bar-wrapper">
                     <div
-                      class="bar-value"
+                      class="bar"
                       :style="{
-                        marginTop:
-                          chart.containerHeight === reason.height
-                            ? '30px'
-                            : '2px',
+                        height: `${reason.height}px`, // 比例计算高度，最大值不超过200px
+                        backgroundColor: chart.color,
+                        opacity: 1 - reasonIndex * 0.1, // 透明度渐变
                       }"
                     >
-                      {{ reason.value }}
+                      <div
+                        class="bar-value"
+                        :style="{
+                          marginTop:
+                            chart.containerHeight === reason.height
+                              ? '30px'
+                              : '2px',
+                        }"
+                      >
+                        {{ reason.value }}
+                      </div>
                     </div>
                   </div>
-                </div>
-                <!-- 原因标签 -->
-                <div class="bar-label">
-                  {{ reason.reasonName }}
+                  <!-- 原因标签 -->
+                  <div class="bar-label">
+                    {{ reason.reasonName }}
+                  </div>
                 </div>
               </div>
             </div>
@@ -130,7 +147,7 @@
 
 <script>
 import * as XLSX from "xlsx";
-// echarts 通过 CDN 引入，直接使用全局对象
+import html2canvas from "html2canvas";
 
 export default {
   name: "OrderAchievementAnalysis",
@@ -330,8 +347,8 @@ export default {
       if (managerData) {
         // 交替使用蓝色和橙色主题色
         const themeColors = [
-          "#5470c6", // 蓝色
-          "#fac858", // 橙色
+          "#2C4D76", // 蓝色
+          "#B86029", // 橙色
         ];
 
         // 交替使用背景色
@@ -397,6 +414,136 @@ export default {
 
       console.log("最终图表数据:", this.chartsData);
     },
+
+    // 导出为图片 - 参考HospitalAuthAnalysis.vue实现
+    async exportToImage() {
+      if (!this.selectedSalesManager) {
+        this.$message.error("请先选择销售经理");
+        return;
+      }
+
+      this.$message.info("正在生成图片...");
+
+      try {
+        // 获取要截图的元素
+        const element = document.querySelector(".analysis-result-container");
+        if (!element) {
+          throw new Error("未找到要截图的元素");
+        }
+
+        // 配置html2canvas选项
+        const options = {
+          scale: 2, // 提高清晰度
+          useCORS: true,
+          backgroundColor: "#ffffff",
+          allowTaint: false,
+          logging: false,
+          windowWidth: element.scrollWidth + 30, // 向左扩展30px
+          windowHeight: element.scrollHeight + 90, // 向下扩展90px
+          x: -30, // 向左偏移30px开始截图
+          y: 0,
+          width: element.offsetWidth + 30, // 增加30px宽度包含向左扩展区域
+          height: element.offsetHeight + 90, // 向下扩展90px
+        };
+
+        // 生成canvas
+        const canvas = await html2canvas(element, options);
+
+        // 转换为图片并下载
+        const link = document.createElement("a");
+        link.download = `${
+          this.selectedSalesManager
+        }_订货达成率分析_${new Date()
+          .toLocaleDateString("zh-CN")
+          .replace(/\//g, "-")}.png`;
+        link.href = canvas.toDataURL("image/png");
+        link.click();
+
+        this.$message.success("图片导出成功！");
+      } catch (error) {
+        console.error("导出图片失败:", error);
+        this.$message.error("图片导出失败，请重试！");
+      }
+    },
+
+    // 批量导出所有销售经理图片 - 参考HospitalAuthAnalysis.vue实现
+    async exportAllToImage() {
+      if (this.salesManagers.length === 0) {
+        this.$message.error("暂无销售经理数据");
+        return;
+      }
+
+      this.$message.info(
+        `开始批量导出${this.salesManagers.length}个销售经理的数据...`
+      );
+      const originalSelectedManager = this.selectedSalesManager;
+      let successCount = 0;
+      let failCount = 0;
+
+      try {
+        for (const manager of this.salesManagers) {
+          // 选择当前销售经理
+          this.selectedSalesManager = manager;
+          // 等待DOM更新
+          await this.$nextTick();
+          // 生成图表数据
+          this.generateChartsData();
+          // 等待图表数据生成和DOM更新
+          await this.$nextTick();
+
+          // 获取要截图的元素
+          const element = document.querySelector(".analysis-result-container");
+          if (!element) {
+            failCount++;
+            continue;
+          }
+
+          // 配置html2canvas选项
+          const options = {
+            scale: 2, // 提高清晰度
+            useCORS: true,
+            backgroundColor: "#ffffff",
+            allowTaint: false,
+            logging: false,
+            windowWidth: element.scrollWidth + 30, // 向左扩展30px
+            windowHeight: element.scrollHeight + 90, // 向下扩展90px
+            x: -30, // 向左偏移30px开始截图
+            y: 0,
+            width: element.offsetWidth + 30, // 增加30px宽度包含向左扩展区域
+            height: element.offsetHeight + 90, // 向下扩展90px
+          };
+
+          // 生成canvas
+          const canvas = await html2canvas(element, options);
+
+          // 转换为图片并下载
+          const link = document.createElement("a");
+          link.download = `${manager}_订货达成率分析_${new Date()
+            .toLocaleDateString("zh-CN")
+            .replace(/\//g, "-")}.png`;
+          link.href = canvas.toDataURL("image/png");
+          link.click();
+
+          successCount++;
+          // 短暂延迟，避免浏览器下载请求过于频繁
+          await new Promise((resolve) => setTimeout(resolve, 500));
+        }
+
+        this.$message.success(
+          `批量导出完成！成功：${successCount}个，失败：${failCount}个`
+        );
+      } catch (error) {
+        console.error("批量导出图片失败:", error);
+        this.$message.error(
+          `批量导出失败，已成功导出${successCount}个销售经理的数据`
+        );
+      } finally {
+        // 恢复原始选择的销售经理
+        this.selectedSalesManager = originalSelectedManager;
+        // 重新生成原始销售经理的图表数据
+        this.generateChartsData();
+      }
+    },
   },
 };
 </script>
@@ -409,15 +556,33 @@ export default {
   font-family: Arial, sans-serif;
 }
 
-.upload-section {
+.header-section {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   margin-bottom: 20px;
-  padding: 20px;
+  padding: 15px;
   background-color: #f5f7fa;
   border-radius: 8px;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+.upload-section {
+  margin-bottom: 0;
+  padding: 0;
+  background-color: transparent;
+  border-radius: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 .filter-section {
-  margin-bottom: 20px;
+  margin-bottom: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 .selected-manager {
@@ -425,7 +590,7 @@ export default {
   margin-bottom: 30px;
 }
 
-.selected-manager h2 {
+.selected-manager h3 {
   color: #333;
   font-size: 24px;
   font-weight: bold;
@@ -438,7 +603,6 @@ export default {
 
 .analysis-result {
   margin-top: 20px;
-  overflow-x: auto;
   white-space: nowrap;
   padding-bottom: 20px;
   display: flex;
@@ -478,6 +642,21 @@ export default {
   font-weight: bold;
   white-space: normal;
   line-height: 1.2;
+}
+
+.chart-header {
+  position: relative;
+  margin-bottom: 10px;
+  height: 40px;
+}
+
+.export-btn {
+  position: absolute;
+  top: 0;
+  right: 10px;
+  z-index: 2;
+  font-size: 12px;
+  padding: 4px 8px;
 }
 
 .css-chart {
@@ -539,6 +718,7 @@ export default {
 .bar-label {
   color: #666;
   font-size: 12px;
+  font-weight: bold;
   text-align: center;
   line-height: 14px; /* 调整行高 */
   writing-mode: vertical-rl; /* 从上往下书写 */
@@ -559,5 +739,11 @@ export default {
 .decrease {
   color: #f5222d; /* 红色表示减少 */
   font-weight: bold;
+}
+.analysis-result-container {
+  width: 100%;
+  height: 100%;
+  padding: 10px;
+  /* height: 100vh; */
 }
 </style>
