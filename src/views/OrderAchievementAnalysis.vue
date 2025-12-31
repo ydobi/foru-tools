@@ -74,7 +74,7 @@
             class="css-chart"
             :style="{
               backgroundColor: chart.bgColor, // 背景色
-              height: `${(chart.total / chart.maxValue) * chartHeight}px`, // 比例计算高度，基于total最大值
+              height: `${chart.containerHeight}px`, // 比例计算高度，基于total最大值
             }"
           >
             <!-- 柱子容器 -->
@@ -89,18 +89,28 @@
                   <div
                     class="bar"
                     :style="{
-                      height: `${
-                        (reason.value / chart.maxValue) * chartHeight
-                      }px`, // 比例计算高度，最大值不超过200px
-                      backgroundColor: chart.color, // 使用主题色
+                      height: `${reason.height}px`, // 比例计算高度，最大值不超过200px
+                      backgroundColor: chart.color,
                       opacity: 1 - reasonIndex * 0.1, // 透明度渐变
                     }"
                   >
-                    <div class="bar-value">{{ reason.value }}</div>
+                    <div
+                      class="bar-value"
+                      :style="{
+                        marginTop:
+                          chart.containerHeight === reason.height
+                            ? '30px'
+                            : '5px',
+                      }"
+                    >
+                      {{ reason.value }}
+                    </div>
                   </div>
                 </div>
                 <!-- 原因标签 -->
-                <div class="bar-label">{{ reason.reasonName }}</div>
+                <div class="bar-label">
+                  {{ reason.reasonName }}
+                </div>
               </div>
             </div>
           </div>
@@ -124,7 +134,7 @@ export default {
       selectedSalesManager: "",
       rawData: {},
       chartsData: [],
-      chartHeight: 200,
+      chartHeight: 150,
     };
   },
   methods: {
@@ -358,13 +368,17 @@ export default {
           // 创建图表数据，使用全局最大值
           const chartData = {
             productName: product.productName,
-            reasons: product.reasons, // 直接使用原因对象数组
+            reasons: product.reasons.map((reason) => ({
+              ...reason,
+              height: (reason.value / globalMaxValue) * this.chartHeight,
+            })), // 直接使用原因对象数组
             total: total,
             change: change,
             color: color, // 添加主题色
             bgColor: bgColor, // 添加背景色
             maxValue: globalMaxValue, // 使用全局最大值
             totalMax: totalMaxValue, // 添加total最大值
+            containerHeight: (total / globalMaxValue) * this.chartHeight,
           };
 
           this.chartsData.push(chartData);
@@ -406,6 +420,7 @@ export default {
   display: flex;
   align-items: flex-end;
   gap: 10px;
+  justify-content: center;
 }
 
 .chart-wrapper {
@@ -441,7 +456,7 @@ export default {
 }
 
 .css-chart {
-  width: 100%;
+  /* width: 100%; */
   display: flex;
   align-items: flex-end;
   justify-content: center;
@@ -455,7 +470,7 @@ export default {
   justify-content: center;
   gap: 5px; /* 更小的间距 */
   height: auto;
-  min-height: 180px;
+  /* min-height: 180px; */
   position: relative;
   transform: translateY(90px);
 }
@@ -465,7 +480,7 @@ export default {
   flex-direction: column;
   align-items: center;
   gap: 5px;
-  width: 20px;
+  width: 40px;
 }
 
 .bar-wrapper {
@@ -477,8 +492,7 @@ export default {
 }
 
 .bar {
-  width: 20px; /* 调整柱子宽度 */
-  border-radius: 4px 4px 0 0;
+  width: 40px; /* 调整柱子宽度 */
   display: flex;
   align-items: flex-start;
   justify-content: center;
@@ -499,7 +513,7 @@ export default {
 
 .bar-label {
   color: #666;
-  font-size: 11px;
+  font-size: 12px;
   text-align: center;
   line-height: 14px; /* 调整行高 */
   writing-mode: vertical-rl; /* 从上往下书写 */
