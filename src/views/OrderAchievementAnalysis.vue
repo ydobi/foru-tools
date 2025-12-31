@@ -70,7 +70,12 @@
           </h2>
 
           <!-- CSS 柱状图 -->
-          <div class="css-chart" :style="{ backgroundColor: chart.bgColor }">
+          <div
+            class="css-chart"
+            :style="{
+              backgroundColor: chart.bgColor, // 背景色
+            }"
+          >
             <!-- 柱子容器 -->
             <div class="chart-bars">
               <div
@@ -83,9 +88,9 @@
                   <div
                     class="bar"
                     :style="{
-                      height: `${reason.value * 30}px`, // 根据数值计算高度
+                      height: `${(reason.value / chart.maxValue) * 200}px`, // 比例计算高度，最大值不超过200px
                       backgroundColor: chart.color, // 使用主题色
-                      opacity: 1 - reasonIndex * 0.15,
+                      opacity: 1 - reasonIndex * 0.1, // 透明度渐变
                     }"
                   >
                     <div class="bar-value">{{ reason.value }}</div>
@@ -332,6 +337,9 @@ export default {
           console.log("产品合计:", total);
           console.log("产品变化:", change);
 
+          // 计算最大value值，用于比例计算高度
+          const maxValue = Math.max(...product.reasons.map((r) => r.value), 1); // 确保至少为1
+
           // 创建图表数据
           const chartData = {
             productName: product.productName,
@@ -340,6 +348,7 @@ export default {
             change: change,
             color: color, // 添加主题色
             bgColor: bgColor, // 添加背景色
+            maxValue: maxValue, // 添加最大value值
           };
 
           this.chartsData.push(chartData);
@@ -399,6 +408,7 @@ export default {
   min-width: 120px; /* 设置最小宽度 */
   height: auto; /* 根据内容自适应高度 */
   min-height: 250px; /* 设置最小高度 */
+  max-height: 250px; /* 设置最大高度 */
   text-align: center;
   display: inline-block;
 }
@@ -415,13 +425,10 @@ export default {
 
 .css-chart {
   width: 100%;
-  height: auto;
-  min-height: 200px;
   display: flex;
   align-items: flex-end;
   justify-content: center;
   position: relative;
-  padding: 10px 0;
 }
 
 .chart-bars {
@@ -432,6 +439,7 @@ export default {
   height: auto;
   min-height: 180px;
   position: relative;
+  transform: translateY(90px);
 }
 
 .bar-item {
