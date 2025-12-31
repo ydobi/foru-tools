@@ -48,6 +48,11 @@
       </el-select>
     </div>
 
+    <!-- 选中的销售经理名称 -->
+    <div class="selected-manager" v-if="selectedSalesManager">
+      <h3>{{ selectedSalesManager }}</h3>
+    </div>
+
     <!-- 数据分析结果 -->
     <div
       class="analysis-result"
@@ -103,7 +108,7 @@
                         marginTop:
                           chart.containerHeight === reason.height
                             ? '30px'
-                            : '5px',
+                            : '2px',
                       }"
                     >
                       {{ reason.value }}
@@ -412,7 +417,23 @@ export default {
 }
 
 .filter-section {
+  margin-bottom: 20px;
+}
+
+.selected-manager {
+  text-align: center;
   margin-bottom: 30px;
+}
+
+.selected-manager h2 {
+  color: #333;
+  font-size: 24px;
+  font-weight: bold;
+  margin: 0;
+  padding: 10px;
+  background-color: #f5f7fa;
+  border-radius: 8px;
+  display: inline-block;
 }
 
 .analysis-result {
@@ -424,6 +445,7 @@ export default {
   align-items: flex-end;
   gap: 10px;
   justify-content: center;
+  padding: 0 10px;
 }
 
 .chart-wrapper {
