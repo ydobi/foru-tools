@@ -74,7 +74,7 @@
             class="css-chart"
             :style="{
               backgroundColor: chart.bgColor, // 背景色
-              height: `${(chart.total / chart.totalMax) * 400}px`, // 比例计算高度，基于total最大值
+              height: `${(chart.total / chart.maxValue) * chartHeight}px`, // 比例计算高度，基于total最大值
             }"
           >
             <!-- 柱子容器 -->
@@ -89,7 +89,9 @@
                   <div
                     class="bar"
                     :style="{
-                      height: `${(reason.value / chart.maxValue) * 200}px`, // 比例计算高度，最大值不超过200px
+                      height: `${
+                        (reason.value / chart.maxValue) * chartHeight
+                      }px`, // 比例计算高度，最大值不超过200px
                       backgroundColor: chart.color, // 使用主题色
                       opacity: 1 - reasonIndex * 0.1, // 透明度渐变
                     }"
@@ -122,6 +124,7 @@ export default {
       selectedSalesManager: "",
       rawData: {},
       chartsData: [],
+      chartHeight: 200,
     };
   },
   methods: {
@@ -419,7 +422,6 @@ export default {
   border-radius: 8px;
   width: auto; /* 根据内容自适应宽度 */
   min-width: 120px; /* 设置最小宽度 */
-  height: 250px; /* 固定高度 */
   text-align: center;
   display: inline-flex;
   flex-direction: column;
