@@ -74,6 +74,7 @@
             class="css-chart"
             :style="{
               backgroundColor: chart.bgColor, // 背景色
+              height: `${(chart.total / chart.totalMax) * 400}px`, // 比例计算高度，基于total最大值
             }"
           >
             <!-- 柱子容器 -->
@@ -318,14 +319,18 @@ export default {
           "rgb(241, 205, 177)", // 浅橙色背景
         ];
 
-        // 先收集所有产品的所有原因值，计算全局最大值
+        // 先收集所有产品的所有原因值和total值，计算全局最大值
         let allValues = [];
+        let allTotals = [];
         managerData.data.forEach((product) => {
           const values = product.reasons.map((r) => r.value);
           allValues = [...allValues, ...values];
+          allTotals.push(product.total || 0);
         });
         // 计算全局最大值，确保至少为1
         const globalMaxValue = Math.max(...allValues, 1);
+        // 计算total最大值，确保至少为1
+        const totalMaxValue = Math.max(...allTotals, 1);
 
         // 遍历每个产品
         managerData.data.forEach((product, index) => {
@@ -356,6 +361,7 @@ export default {
             color: color, // 添加主题色
             bgColor: bgColor, // 添加背景色
             maxValue: globalMaxValue, // 使用全局最大值
+            totalMax: totalMaxValue, // 添加total最大值
           };
 
           this.chartsData.push(chartData);
