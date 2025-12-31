@@ -318,6 +318,15 @@ export default {
           "rgb(241, 205, 177)", // 浅橙色背景
         ];
 
+        // 先收集所有产品的所有原因值，计算全局最大值
+        let allValues = [];
+        managerData.data.forEach((product) => {
+          const values = product.reasons.map((r) => r.value);
+          allValues = [...allValues, ...values];
+        });
+        // 计算全局最大值，确保至少为1
+        const globalMaxValue = Math.max(...allValues, 1);
+
         // 遍历每个产品
         managerData.data.forEach((product, index) => {
           console.log("处理产品:", product);
@@ -336,11 +345,9 @@ export default {
           console.log("产品原因:", product.reasons);
           console.log("产品合计:", total);
           console.log("产品变化:", change);
+          console.log("全局最大值:", globalMaxValue);
 
-          // 计算最大value值，用于比例计算高度
-          const maxValue = Math.max(...product.reasons.map((r) => r.value), 1); // 确保至少为1
-
-          // 创建图表数据
+          // 创建图表数据，使用全局最大值
           const chartData = {
             productName: product.productName,
             reasons: product.reasons, // 直接使用原因对象数组
@@ -348,7 +355,7 @@ export default {
             change: change,
             color: color, // 添加主题色
             bgColor: bgColor, // 添加背景色
-            maxValue: maxValue, // 添加最大value值
+            maxValue: globalMaxValue, // 使用全局最大值
           };
 
           this.chartsData.push(chartData);
@@ -406,11 +413,13 @@ export default {
   border-radius: 8px;
   width: auto; /* 根据内容自适应宽度 */
   min-width: 120px; /* 设置最小宽度 */
-  height: auto; /* 根据内容自适应高度 */
-  min-height: 250px; /* 设置最小高度 */
-  max-height: 250px; /* 设置最大高度 */
+  height: 250px; /* 固定高度 */
   text-align: center;
-  display: inline-block;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  position: relative;
 }
 
 .product-title {
@@ -429,6 +438,7 @@ export default {
   align-items: flex-end;
   justify-content: center;
   position: relative;
+  padding: 0 5px;
 }
 
 .chart-bars {
