@@ -705,7 +705,7 @@ export default {
 }
 
 .bar-value {
-  color: #333;
+  color: #000;
   font-size: 12px;
   font-weight: bold;
   margin-top: -5px;
@@ -716,7 +716,7 @@ export default {
 }
 
 .bar-label {
-  color: #666;
+  color: #000;
   font-size: 12px;
   font-weight: bold;
   text-align: center;
