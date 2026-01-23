@@ -117,18 +117,17 @@
                         backgroundColor: chart.color,
                         opacity: 1 - reasonIndex * 0.1, // 透明度渐变
                       }"
+                    ></div>
+                    <div
+                      class="bar-value"
+                      :style="{
+                        marginTop:
+                          chart.containerHeight === reason.height
+                            ? '30px'
+                            : '2px',
+                      }"
                     >
-                      <div
-                        class="bar-value"
-                        :style="{
-                          marginTop:
-                            chart.containerHeight === reason.height
-                              ? '30px'
-                              : '2px',
-                        }"
-                      >
-                        {{ reason.value }}
-                      </div>
+                      {{ reason.value }}
                     </div>
                   </div>
                   <!-- 原因标签 -->
@@ -474,7 +473,7 @@ export default {
       }
 
       this.$message.info(
-        `开始批量导出${this.salesManagers.length}个销售经理的数据...`
+        `开始批量导出${this.salesManagers.length}个销售经理的数据...`,
       );
       const originalSelectedManager = this.selectedSalesManager;
       let successCount = 0;
@@ -530,12 +529,12 @@ export default {
         }
 
         this.$message.success(
-          `批量导出完成！成功：${successCount}个，失败：${failCount}个`
+          `批量导出完成！成功：${successCount}个，失败：${failCount}个`,
         );
       } catch (error) {
         console.error("批量导出图片失败:", error);
         this.$message.error(
-          `批量导出失败，已成功导出${successCount}个销售经理的数据`
+          `批量导出失败，已成功导出${successCount}个销售经理的数据`,
         );
       } finally {
         // 恢复原始选择的销售经理
