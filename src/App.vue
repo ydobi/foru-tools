@@ -19,8 +19,8 @@
           :collapse="isCollapsed"
           router
           class="aside-menu"
-          background-color="#1f2d3d"
-          text-color="#bfcbd9"
+          background-color="#ffffff"
+          text-color="#606266"
           active-text-color="#409eff"
         >
           <el-menu-item
@@ -199,7 +199,8 @@ export default {
   --app-text-secondary: #606266;
   --app-border: #dcdfe6;
   --app-header-height: 56px;
-  --app-aside-bg: #1f2d3d;
+  --app-aside-bg: #ffffff;
+  --app-aside-border: #ebeef5;
 }
 
 body {
@@ -230,7 +231,7 @@ body {
   min-height: 100vh;
   transition: width 0.2s ease;
   overflow: hidden;
-  border-right: none;
+  border-right: 1px solid var(--app-aside-border);
 }
 
 .aside-brand {
@@ -238,7 +239,7 @@ body {
   display: flex;
   align-items: center;
   padding: 0 16px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid var(--app-aside-border);
   flex-shrink: 0;
 }
 
@@ -257,7 +258,7 @@ body {
 }
 
 .logo-text {
-  color: #fff;
+  color: #303133;
   font-size: 15px;
   font-weight: 600;
   white-space: nowrap;
@@ -281,10 +282,17 @@ body {
   line-height: 1.4;
   padding: 12px 20px !important;
   white-space: normal;
+  margin: 2px 8px;
+  border-radius: 6px;
+}
+
+.aside-menu .el-menu-item:hover {
+  background-color: #f5f7fa !important;
 }
 
 .aside-menu .el-menu-item.is-active {
-  background-color: rgba(64, 158, 255, 0.15) !important;
+  background-color: #ecf5ff !important;
+  color: #409eff !important;
 }
 
 .menu-label {
@@ -296,18 +304,18 @@ body {
 
 .aside-footer {
   padding: 8px;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  border-top: 1px solid var(--app-aside-border);
   flex-shrink: 0;
 }
 
 .collapse-btn {
   width: 100%;
-  color: #bfcbd9 !important;
+  color: #909399 !important;
 }
 
 .collapse-btn:hover {
-  color: #fff !important;
-  background-color: rgba(255, 255, 255, 0.08) !important;
+  color: #409eff !important;
+  background-color: #f5f7fa !important;
 }
 
 .app-right {
