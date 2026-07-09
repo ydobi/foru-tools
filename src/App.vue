@@ -1,61 +1,13 @@
 <template>
   <div class="app-container">
     <el-container class="app-layout" :class="{ 'app-layout--login': isLoginPage }">
-      <!-- 侧边栏：登录页隐藏 -->
-      <el-aside
-        v-if="!isLoginPage"
-        :width="asideWidth"
-        class="app-aside"
-      >
-        <div class="aside-brand">
-          <router-link to="/" class="aside-brand-link">
-            <el-icon class="logo-icon"><DataAnalysis /></el-icon>
-            <span v-show="!isCollapsed" class="logo-text">数据处理工具集</span>
-          </router-link>
-        </div>
-
-        <el-menu
-          :default-active="activeIndex"
-          :collapse="isCollapsed"
-          router
-          class="aside-menu"
-          background-color="#ffffff"
-          text-color="#606266"
-          active-text-color="#409eff"
-        >
-          <el-menu-item
-            v-for="menu in menus"
-            :key="menu.path"
-            :index="menu.path"
-            :title="menu.label"
-          >
-            <el-icon v-if="menu.icon">
-              <component :is="menu.icon" />
-            </el-icon>
-            <template #title>
-              <span class="menu-label">{{ menu.label }}</span>
-            </template>
-          </el-menu-item>
-        </el-menu>
-
-        <div class="aside-footer">
-          <el-button
-            class="collapse-btn"
-            text
-            @click="isCollapsed = !isCollapsed"
-          >
-            <el-icon>
-              <Fold v-if="!isCollapsed" />
-              <Expand v-else />
-            </el-icon>
-          </el-button>
-        </div>
-      </el-aside>
-
       <el-container class="app-right">
         <el-header v-if="!isLoginPage" class="app-header" height="56px">
           <div class="header-container">
-            <div class="header-title">{{ currentPageTitle }}</div>
+            <router-link to="/" class="header-brand">
+              <el-icon class="logo-icon"><DataAnalysis /></el-icon>
+              <span class="logo-text">数据处理工具集</span>
+            </router-link>
             <div class="user-info">
               <el-button
                 v-if="!isLoggedIn"
@@ -100,7 +52,7 @@
 </template>
 
 <script>
-import { computed, ref } from "vue";
+import { computed } from "vue";
 import { useRoute } from "vue-router";
 import {
   User,
@@ -108,57 +60,35 @@ import {
   ArrowDown,
   SwitchButton,
   DataAnalysis,
-  Fold,
-  Expand,
 } from "@element-plus/icons-vue";
 import {
   getUser,
   isLoggedIn,
   isAdmin,
-  getMenusByRole,
   logout,
 } from "./utils/auth";
 
 export default {
   name: "App",
-  components: {
-    Fold,
-    Expand,
-  },
   setup() {
     const route = useRoute();
-    const activeIndex = computed(() => route.path);
     const isLoginPage = computed(() => route.path === "/login");
-    const isCollapsed = ref(false);
-    const asideWidth = computed(() => (isCollapsed.value ? "64px" : "220px"));
 
     return {
-      activeIndex,
       isLoginPage,
-      isCollapsed,
-      asideWidth,
       User,
       UserFilled,
       ArrowDown,
       SwitchButton,
       DataAnalysis,
-      Fold,
-      Expand,
     };
   },
   data() {
     return {
-      menus: [],
       currentUser: null,
       isLoggedIn: false,
       isAdmin: false,
     };
-  },
-  computed: {
-    currentPageTitle() {
-      const current = this.menus.find((m) => m.path === this.$route.path);
-      return current ? current.label : "数据处理工具集";
-    },
   },
   created() {
     this.updateUserState();
@@ -174,7 +104,6 @@ export default {
       this.currentUser = getUser();
       this.isLoggedIn = isLoggedIn();
       this.isAdmin = isAdmin();
-      this.menus = getMenusByRole();
     },
     handleCommand(command) {
       if (command === "logout") {
@@ -199,8 +128,6 @@ export default {
   --app-text-secondary: #606266;
   --app-border: #dcdfe6;
   --app-header-height: 56px;
-  --app-aside-bg: #ffffff;
-  --app-aside-border: #ebeef5;
 }
 
 body {
@@ -222,100 +149,6 @@ body {
 
 .app-layout--login {
   display: block;
-}
-
-.app-aside {
-  background-color: var(--app-aside-bg);
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
-  transition: width 0.2s ease;
-  overflow: hidden;
-  border-right: 1px solid var(--app-aside-border);
-}
-
-.aside-brand {
-  height: var(--app-header-height);
-  display: flex;
-  align-items: center;
-  padding: 0 16px;
-  border-bottom: 1px solid var(--app-aside-border);
-  flex-shrink: 0;
-}
-
-.aside-brand-link {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  text-decoration: none;
-  overflow: hidden;
-}
-
-.logo-icon {
-  font-size: 22px;
-  color: #409eff;
-  flex-shrink: 0;
-}
-
-.logo-text {
-  color: #303133;
-  font-size: 15px;
-  font-weight: 600;
-  white-space: nowrap;
-}
-
-.aside-menu {
-  border-right: none !important;
-  flex: 1;
-  overflow-y: auto;
-  overflow-x: hidden;
-  padding: 8px 0;
-}
-
-.aside-menu:not(.el-menu--collapse) {
-  width: 220px;
-}
-
-.aside-menu .el-menu-item {
-  height: auto;
-  min-height: 48px;
-  line-height: 1.4;
-  padding: 12px 20px !important;
-  white-space: normal;
-  margin: 2px 8px;
-  border-radius: 6px;
-}
-
-.aside-menu .el-menu-item:hover {
-  background-color: #f5f7fa !important;
-}
-
-.aside-menu .el-menu-item.is-active {
-  background-color: #ecf5ff !important;
-  color: #409eff !important;
-}
-
-.menu-label {
-  display: inline-block;
-  white-space: normal;
-  word-break: break-all;
-  line-height: 1.4;
-}
-
-.aside-footer {
-  padding: 8px;
-  border-top: 1px solid var(--app-aside-border);
-  flex-shrink: 0;
-}
-
-.collapse-btn {
-  width: 100%;
-  color: #909399 !important;
-}
-
-.collapse-btn:hover {
-  color: #409eff !important;
-  background-color: #f5f7fa !important;
 }
 
 .app-right {
@@ -340,10 +173,24 @@ body {
   padding: 0 20px;
 }
 
-.header-title {
+.header-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+}
+
+.logo-icon {
+  font-size: 22px;
+  color: #409eff;
+  flex-shrink: 0;
+}
+
+.logo-text {
+  color: #303133;
   font-size: 16px;
   font-weight: 600;
-  color: var(--app-text);
+  white-space: nowrap;
 }
 
 .user-info {
