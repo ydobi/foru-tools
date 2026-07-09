@@ -1,8 +1,8 @@
 <template>
   <div class="app-container">
     <el-container>
-      <!-- 头部导航 -->
-      <el-header class="app-header">
+      <!-- 头部导航：登录页隐藏 -->
+      <el-header v-if="!isLoginPage" class="app-header" height="60px">
         <div class="header-container">
           <div class="logo-container">
             <router-link to="/">
@@ -11,7 +11,6 @@
             </router-link>
           </div>
 
-          <!-- 导航菜单 -->
           <el-menu
             :default-active="activeIndex"
             mode="horizontal"
@@ -30,7 +29,6 @@
             </el-menu-item>
           </el-menu>
 
-          <!-- 用户信息 -->
           <div class="user-info">
             <el-button
               v-if="!isLoggedIn"
@@ -67,8 +65,7 @@
         </div>
       </el-header>
 
-      <!-- 主要内容区域 -->
-      <el-main class="app-main">
+      <el-main :class="['app-main', { 'app-main--login': isLoginPage }]">
         <router-view />
       </el-main>
     </el-container>
@@ -76,7 +73,7 @@
 </template>
 
 <script>
-import { ref, computed, onMounted, onBeforeUnmount } from "vue";
+import { computed } from "vue";
 import { useRoute } from "vue-router";
 import {
   User,
@@ -98,9 +95,11 @@ export default {
   setup() {
     const route = useRoute();
     const activeIndex = computed(() => route.path);
+    const isLoginPage = computed(() => route.path === "/login");
 
     return {
       activeIndex,
+      isLoginPage,
       User,
       UserFilled,
       ArrowDown,
@@ -117,11 +116,9 @@ export default {
     };
   },
   created() {
-    // 初始化用户状态
     this.updateUserState();
   },
   mounted() {
-    // 监听路由变化，更新用户状态
     this.$router.beforeEach((to, from, next) => {
       this.updateUserState();
       next();
@@ -149,11 +146,23 @@ export default {
 </script>
 
 <style>
+:root {
+  --app-primary: #409eff;
+  --app-primary-dark: #2c6dd5;
+  --app-bg: #f5f7fa;
+  --app-text: #303133;
+  --app-text-secondary: #606266;
+  --app-border: #dcdfe6;
+  --app-header-height: 60px;
+}
+
 body {
   margin: 0;
   padding: 0;
   font-family: "Helvetica Neue", Helvetica, "PingFang SC", "Hiragino Sans GB",
     "Microsoft YaHei", Arial, sans-serif;
+  background-color: var(--app-bg);
+  color: var(--app-text);
 }
 
 .app-container {
@@ -162,9 +171,9 @@ body {
 
 .app-header {
   padding: 0;
-  background: linear-gradient(135deg, #409eff, #2c6dd5);
+  background: linear-gradient(135deg, var(--app-primary), var(--app-primary-dark));
   color: #fff;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
   position: relative;
   overflow: hidden;
 }
@@ -185,7 +194,7 @@ body {
 }
 
 .header-container {
-  height: 60px;
+  height: var(--app-header-height);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -197,6 +206,7 @@ body {
 .logo-container {
   display: flex;
   align-items: center;
+  flex-shrink: 0;
 }
 
 .logo-container a {
@@ -214,22 +224,25 @@ body {
 .logo {
   color: #fff;
   margin: 0;
-  font-size: 1.5rem;
+  font-size: 1.35rem;
   font-weight: 600;
+  white-space: nowrap;
 }
 
 .nav-menu {
   border-bottom: none;
   flex: 1;
-  margin-left: 30px;
+  margin-left: 24px;
   background-color: transparent !important;
+  overflow-x: auto;
 }
 
 .nav-menu :deep(.el-menu-item) {
-  height: 60px;
-  line-height: 60px;
-  font-size: 15px;
+  height: var(--app-header-height);
+  line-height: var(--app-header-height);
+  font-size: 14px;
   border-bottom: none !important;
+  padding: 0 14px;
 }
 
 .nav-menu :deep(.el-menu-item.is-active) {
@@ -244,6 +257,8 @@ body {
 .user-info {
   display: flex;
   align-items: center;
+  flex-shrink: 0;
+  margin-left: 12px;
 }
 
 .user-info .el-button--primary.is-plain {
@@ -265,6 +280,7 @@ body {
   padding: 5px 10px;
   border-radius: 4px;
   transition: background-color 0.3s;
+  gap: 6px;
 }
 
 .el-dropdown-link:hover {
@@ -272,13 +288,20 @@ body {
 }
 
 .admin-tag {
-  margin-left: 8px;
+  margin-left: 4px;
 }
 
 .app-main {
-  min-height: calc(100vh - 30px);
-  padding: 20px;
-  background-color: #f5f7fa;
+  min-height: calc(100vh - var(--app-header-height));
+  padding: 24px 20px;
+  background-color: var(--app-bg);
+}
+
+.app-main--login {
+  min-height: 100vh;
+  padding: 0;
+  display: flex;
+  align-items: stretch;
 }
 
 a {
