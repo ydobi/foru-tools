@@ -1,79 +1,106 @@
 <template>
   <div class="app-container">
-    <el-container>
-      <!-- 头部导航：登录页隐藏 -->
-      <el-header v-if="!isLoginPage" class="app-header" height="60px">
-        <div class="header-container">
-          <div class="logo-container">
-            <router-link to="/">
-              <el-icon class="logo-icon"><DataAnalysis /></el-icon>
-              <h2 class="logo">数据处理工具集</h2>
-            </router-link>
-          </div>
-
-          <el-menu
-            :default-active="activeIndex"
-            mode="horizontal"
-            router
-            background-color="transparent"
-            text-color="#fff"
-            active-text-color="#ffd04b"
-            class="nav-menu"
-          >
-            <el-menu-item
-              v-for="menu in menus"
-              :key="menu.path"
-              :index="menu.path"
-            >
-              {{ menu.label }}
-            </el-menu-item>
-          </el-menu>
-
-          <div class="user-info">
-            <el-button
-              v-if="!isLoggedIn"
-              type="primary"
-              plain
-              @click="$router.push('/login')"
-            >
-              <el-icon><User /></el-icon> 登录
-            </el-button>
-
-            <el-dropdown v-if="isLoggedIn" @command="handleCommand">
-              <span class="el-dropdown-link">
-                <el-avatar :size="32" :icon="UserFilled" />
-                {{ currentUser ? currentUser.username : "用户" }}
-                <el-tag
-                  v-if="isAdmin"
-                  type="danger"
-                  size="small"
-                  effect="dark"
-                  class="admin-tag"
-                  >管理员</el-tag
-                >
-                <el-icon class="el-icon--right"><ArrowDown /></el-icon>
-              </span>
-              <template #dropdown>
-                <el-dropdown-menu>
-                  <el-dropdown-item command="logout">
-                    <el-icon><SwitchButton /></el-icon> 注销
-                  </el-dropdown-item>
-                </el-dropdown-menu>
-              </template>
-            </el-dropdown>
-          </div>
+    <el-container class="app-layout" :class="{ 'app-layout--login': isLoginPage }">
+      <!-- 侧边栏：登录页隐藏 -->
+      <el-aside
+        v-if="!isLoginPage"
+        :width="asideWidth"
+        class="app-aside"
+      >
+        <div class="aside-brand">
+          <router-link to="/" class="aside-brand-link">
+            <el-icon class="logo-icon"><DataAnalysis /></el-icon>
+            <span v-show="!isCollapsed" class="logo-text">数据处理工具集</span>
+          </router-link>
         </div>
-      </el-header>
 
-      <el-main :class="['app-main', { 'app-main--login': isLoginPage }]">
-        <router-view />
-      </el-main>
+        <el-menu
+          :default-active="activeIndex"
+          :collapse="isCollapsed"
+          router
+          class="aside-menu"
+          background-color="#1f2d3d"
+          text-color="#bfcbd9"
+          active-text-color="#409eff"
+        >
+          <el-menu-item
+            v-for="menu in menus"
+            :key="menu.path"
+            :index="menu.path"
+            :title="menu.label"
+          >
+            <el-icon v-if="menu.icon">
+              <component :is="menu.icon" />
+            </el-icon>
+            <template #title>
+              <span class="menu-label">{{ menu.label }}</span>
+            </template>
+          </el-menu-item>
+        </el-menu>
+
+        <div class="aside-footer">
+          <el-button
+            class="collapse-btn"
+            text
+            @click="isCollapsed = !isCollapsed"
+          >
+            <el-icon>
+              <Fold v-if="!isCollapsed" />
+              <Expand v-else />
+            </el-icon>
+          </el-button>
+        </div>
+      </el-aside>
+
+      <el-container class="app-right">
+        <el-header v-if="!isLoginPage" class="app-header" height="56px">
+          <div class="header-container">
+            <div class="header-title">{{ currentPageTitle }}</div>
+            <div class="user-info">
+              <el-button
+                v-if="!isLoggedIn"
+                type="primary"
+                plain
+                @click="$router.push('/login')"
+              >
+                <el-icon><User /></el-icon> 登录
+              </el-button>
+
+              <el-dropdown v-if="isLoggedIn" @command="handleCommand">
+                <span class="el-dropdown-link">
+                  <el-avatar :size="32" :icon="UserFilled" />
+                  <span class="username">{{ currentUser ? currentUser.username : "用户" }}</span>
+                  <el-tag
+                    v-if="isAdmin"
+                    type="danger"
+                    size="small"
+                    effect="dark"
+                    class="admin-tag"
+                  >管理员</el-tag>
+                  <el-icon class="el-icon--right"><ArrowDown /></el-icon>
+                </span>
+                <template #dropdown>
+                  <el-dropdown-menu>
+                    <el-dropdown-item command="logout">
+                      <el-icon><SwitchButton /></el-icon> 注销
+                    </el-dropdown-item>
+                  </el-dropdown-menu>
+                </template>
+              </el-dropdown>
+            </div>
+          </div>
+        </el-header>
+
+        <el-main :class="['app-main', { 'app-main--login': isLoginPage }]">
+          <router-view />
+        </el-main>
+      </el-container>
     </el-container>
   </div>
 </template>
 
 <script>
-import { computed } from "vue";
+import { computed, ref } from "vue";
 import { useRoute } from "vue-router";
 import {
   User,
@@ -81,6 +108,8 @@ import {
   ArrowDown,
   SwitchButton,
   DataAnalysis,
+  Fold,
+  Expand,
 } from "@element-plus/icons-vue";
 import {
   getUser,
@@ -92,19 +121,29 @@ import {
 
 export default {
   name: "App",
+  components: {
+    Fold,
+    Expand,
+  },
   setup() {
     const route = useRoute();
     const activeIndex = computed(() => route.path);
     const isLoginPage = computed(() => route.path === "/login");
+    const isCollapsed = ref(false);
+    const asideWidth = computed(() => (isCollapsed.value ? "64px" : "220px"));
 
     return {
       activeIndex,
       isLoginPage,
+      isCollapsed,
+      asideWidth,
       User,
       UserFilled,
       ArrowDown,
       SwitchButton,
       DataAnalysis,
+      Fold,
+      Expand,
     };
   },
   data() {
@@ -114,6 +153,12 @@ export default {
       isLoggedIn: false,
       isAdmin: false,
     };
+  },
+  computed: {
+    currentPageTitle() {
+      const current = this.menus.find((m) => m.path === this.$route.path);
+      return current ? current.label : "数据处理工具集";
+    },
   },
   created() {
     this.updateUserState();
@@ -153,7 +198,8 @@ export default {
   --app-text: #303133;
   --app-text-secondary: #606266;
   --app-border: #dcdfe6;
-  --app-header-height: 60px;
+  --app-header-height: 56px;
+  --app-aside-bg: #1f2d3d;
 }
 
 body {
@@ -169,28 +215,113 @@ body {
   min-height: 100vh;
 }
 
-.app-header {
-  padding: 0;
-  background: linear-gradient(135deg, var(--app-primary), var(--app-primary-dark));
-  color: #fff;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-  position: relative;
+.app-layout {
+  min-height: 100vh;
+}
+
+.app-layout--login {
+  display: block;
+}
+
+.app-aside {
+  background-color: var(--app-aside-bg);
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  transition: width 0.2s ease;
+  overflow: hidden;
+  border-right: none;
+}
+
+.aside-brand {
+  height: var(--app-header-height);
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  flex-shrink: 0;
+}
+
+.aside-brand-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
   overflow: hidden;
 }
 
-.app-header::before {
-  content: "";
-  position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  background: radial-gradient(
-    circle,
-    rgba(255, 255, 255, 0.1) 0%,
-    rgba(255, 255, 255, 0) 70%
-  );
-  z-index: 1;
+.logo-icon {
+  font-size: 22px;
+  color: #409eff;
+  flex-shrink: 0;
+}
+
+.logo-text {
+  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.aside-menu {
+  border-right: none !important;
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 8px 0;
+}
+
+.aside-menu:not(.el-menu--collapse) {
+  width: 220px;
+}
+
+.aside-menu .el-menu-item {
+  height: auto;
+  min-height: 48px;
+  line-height: 1.4;
+  padding: 12px 20px !important;
+  white-space: normal;
+}
+
+.aside-menu .el-menu-item.is-active {
+  background-color: rgba(64, 158, 255, 0.15) !important;
+}
+
+.menu-label {
+  display: inline-block;
+  white-space: normal;
+  word-break: break-all;
+  line-height: 1.4;
+}
+
+.aside-footer {
+  padding: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  flex-shrink: 0;
+}
+
+.collapse-btn {
+  width: 100%;
+  color: #bfcbd9 !important;
+}
+
+.collapse-btn:hover {
+  color: #fff !important;
+  background-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+.app-right {
+  min-width: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-header {
+  padding: 0;
+  background: #fff;
+  border-bottom: 1px solid var(--app-border);
+  box-shadow: none;
 }
 
 .header-container {
@@ -199,96 +330,41 @@ body {
   align-items: center;
   justify-content: space-between;
   padding: 0 20px;
-  position: relative;
-  z-index: 2;
 }
 
-.logo-container {
-  display: flex;
-  align-items: center;
-  flex-shrink: 0;
-}
-
-.logo-container a {
-  display: flex;
-  align-items: center;
-  text-decoration: none;
-}
-
-.logo-icon {
-  font-size: 24px;
-  color: #fff;
-  margin-right: 10px;
-}
-
-.logo {
-  color: #fff;
-  margin: 0;
-  font-size: 1.35rem;
+.header-title {
+  font-size: 16px;
   font-weight: 600;
-  white-space: nowrap;
-}
-
-.nav-menu {
-  border-bottom: none;
-  flex: 1;
-  margin-left: 24px;
-  background-color: transparent !important;
-  overflow-x: auto;
-}
-
-.nav-menu :deep(.el-menu-item) {
-  height: var(--app-header-height);
-  line-height: var(--app-header-height);
-  font-size: 14px;
-  border-bottom: none !important;
-  padding: 0 14px;
-}
-
-.nav-menu :deep(.el-menu-item.is-active) {
-  background-color: rgba(255, 255, 255, 0.1) !important;
-  border-bottom: 3px solid #ffd04b !important;
-}
-
-.nav-menu :deep(.el-menu-item:hover) {
-  background-color: rgba(255, 255, 255, 0.1) !important;
+  color: var(--app-text);
 }
 
 .user-info {
   display: flex;
   align-items: center;
   flex-shrink: 0;
-  margin-left: 12px;
-}
-
-.user-info .el-button--primary.is-plain {
-  background-color: transparent;
-  border-color: rgba(255, 255, 255, 0.7);
-  color: #fff;
-}
-
-.user-info .el-button--primary.is-plain:hover {
-  background-color: rgba(255, 255, 255, 0.1);
-  border-color: #fff;
 }
 
 .el-dropdown-link {
   display: flex;
   align-items: center;
-  color: #fff;
+  color: var(--app-text);
   cursor: pointer;
-  padding: 5px 10px;
+  padding: 4px 8px;
   border-radius: 4px;
   transition: background-color 0.3s;
-  gap: 6px;
+  gap: 8px;
 }
 
 .el-dropdown-link:hover {
-  background-color: rgba(255, 255, 255, 0.1);
+  background-color: #f5f7fa;
+}
+
+.username {
+  font-size: 14px;
 }
 
 .admin-tag {
-  margin-left: 4px;
+  margin-left: 0;
 }
 
 .app-main {

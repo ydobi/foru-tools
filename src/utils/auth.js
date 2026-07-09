@@ -1,4 +1,13 @@
 // 用户认证相关的工具函数
+import {
+  HomeFilled,
+  Connection,
+  Document,
+  MapLocation,
+  Share,
+  FirstAidKit,
+  TrendCharts
+} from '@element-plus/icons-vue'
 
 /**
  * 获取当前登录用户信息
@@ -51,7 +60,7 @@ export function getMenusByRole() {
   
   // 所有用户都可以访问的菜单
   const commonMenus = [
-    { name: 'Home', path: '/', label: '首页' }
+    { name: 'Home', path: '/', label: '首页', icon: HomeFilled }
   ];
   
   // 根据角色返回不同的菜单
@@ -63,20 +72,20 @@ export function getMenusByRole() {
     // 管理员可以访问所有菜单
     return [
       ...commonMenus,
-      { name: 'CompanyRelation', path: '/company-relation', label: '公司关联关系处理' },
-      { name: 'ExcelMerge', path: '/excel-merge', label: 'Excel文件合并' },
-      { name: 'SmartMap', path: '/smart-map', label: '智能地图工具' },
-      { name: 'RoleManage', path: '/company-relation2', label: '表格数据合并（植入公司、授权公司、订货公司）' },
-      { name: 'HospitalAuthAnalysis', path: '/hospital-auth-analysis', label: '医院授权&植入分析' },
-      { name: 'OrderAchievementAnalysis', path: '/order-achievement-analysis', label: '订货达成率异常分析' }
+      { name: 'CompanyRelation', path: '/company-relation', label: '公司关联关系处理', icon: Connection },
+      { name: 'ExcelMerge', path: '/excel-merge', label: 'Excel文件合并', icon: Document },
+      { name: 'SmartMap', path: '/smart-map', label: '智能地图工具', icon: MapLocation },
+      { name: 'RoleManage', path: '/company-relation2', label: '公司关联关系处理2', icon: Share },
+      { name: 'HospitalAuthAnalysis', path: '/hospital-auth-analysis', label: '医院授权&植入分析', icon: FirstAidKit },
+      { name: 'OrderAchievementAnalysis', path: '/order-achievement-analysis', label: '订货达成率异常分析', icon: TrendCharts }
     ];
   } else {
     // 普通用户只能访问部分菜单
     return [
       ...commonMenus,
-      { name: 'ExcelMerge', path: '/excel-merge', label: 'Excel文件合并' },
-      { name: 'HospitalAuthAnalysis', path: '/hospital-auth-analysis', label: '医院授权&植入分析' },
-      { name: 'OrderAchievementAnalysis', path: '/order-achievement-analysis', label: '订货达成率异常分析' }
+      { name: 'ExcelMerge', path: '/excel-merge', label: 'Excel文件合并', icon: Document },
+      { name: 'HospitalAuthAnalysis', path: '/hospital-auth-analysis', label: '医院授权&植入分析', icon: FirstAidKit },
+      { name: 'OrderAchievementAnalysis', path: '/order-achievement-analysis', label: '订货达成率异常分析', icon: TrendCharts }
     ];
   }
 }
