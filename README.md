@@ -21,7 +21,6 @@
 ### 安装依赖
 
 \`\`\`bash
-cd vue-tools
 npm install
 \`\`\`
 
@@ -89,8 +88,23 @@ npm run preview
 
 ## 登录 API（foru-next-server）
 
-登录改为请求 [foru-next-server](https://github.com/ydobi/foru-next-server) 的 `/api/login`。
+登录请求 [foru-next-server](https://github.com/ydobi/foru-next-server)（Cloudflare Worker 名：`foru-next-server`）：
 
-Cloudflare Pages 构建时设置 `VITE_API_BASE` 为该 Worker 的 origin（不要末尾斜杠）。
+- `POST /api/login`  JSON：username、password
+- `GET /api/me`  Authorization Bearer JWT
 
-本地开发可留空 `VITE_API_BASE`，Vite 将 `/api` 代理到 `http://127.0.0.1:3001`（`VITE_API_PROXY` 可覆盖）。
+演示账号：admin / admin123、user / user123。
+
+### Cloudflare Pages
+
+构建变量必须设置 `VITE_API_BASE` 为 Worker 的 origin（不要末尾斜杠），例如：
+
+```
+VITE_API_BASE=https://foru-next-server.<你的workers子域>.workers.dev
+```
+
+不设的话，线上登录会打到 Pages 自己的域名，接口不存在。改环境变量后需要重新构建；推送 `main` 会触发 Pages 部署。
+
+### 本地开发
+
+可留空 `VITE_API_BASE`。Vite 把 `/api` 代理到 `http://127.0.0.1:3001`（`VITE_API_PROXY` 可覆盖）。本地对接 Next 时改代理目标端口即可。
