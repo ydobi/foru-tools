@@ -6,7 +6,7 @@ import SmartMap from '../views/SmartMap.vue'
 import Login from '../views/Login.vue'
 import HospitalAuthAnalysis from '../views/HospitalAuthAnalysis.vue'
 import OrderAchievementAnalysis from '../views/OrderAchievementAnalysis.vue'
-import { isLoggedIn, hasRole } from '../utils/auth'
+import { isLoggedIn, hasRole, ensureSession } from '../utils/auth'
 
 const routes = [
   {
@@ -36,7 +36,8 @@ const routes = [
   {
     path: '/company-relation2',
     name: 'CompanyRelation2',
-    component: () => import('@/views/CompanyRelation2.vue')
+    component: () => import('@/views/CompanyRelation2.vue'),
+    meta: { requiresAuth: true, roles: ['admin', 'user'] }
   },
   {
     path: '/smart-map',
@@ -79,37 +80,33 @@ const router = createRouter({
 })
 
 // 全局前置守卫
-router.beforeEach((to, from, next) => {
+router.beforeEach(async (to, from, next) => {
   const requiresAuth = to.matched.some(record => record.meta.requiresAuth)
   const isGuestOnly = to.matched.some(record => record.meta.guest)
-  
-  // 检查是否需要认证
+
   if (requiresAuth) {
-    // 如果需要认证但未登录，重定向到登录页
-    if (!isLoggedIn()) {
+    const ok = await ensureSession()
+    if (!ok) {
       next({ name: 'Login' })
       return
     }
-    
-    // 检查角色权限
+
     const requiredRoles = to.meta.roles
     if (requiredRoles && requiredRoles.length > 0) {
       const hasAccess = requiredRoles.some(role => hasRole(role))
       if (!hasAccess) {
-        // 如果没有所需角色权限，重定向到首页
         next({ name: 'Home' })
         return
       }
     }
   }
-  
-  // 如果是仅限游客的页面（如登录页），已登录用户应重定向到首页
+
+  // 登录页不调用 /api/me，避免无效 token 时 next(Login) 形成请求循环
   if (isGuestOnly && isLoggedIn()) {
     next({ name: 'Home' })
     return
   }
-  
-  // 其他情况正常导航
+
   next()
 })
 
