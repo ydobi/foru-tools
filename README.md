@@ -93,7 +93,7 @@ npm run preview
 - `POST /api/login`  JSON：username、password
 - `GET /api/me`  Authorization Bearer JWT
 
-演示账号：admin / admin123、user / user123。
+账号：`admin`（管理员）、`user`。密码存在 D1，明文不进仓库。
 
 ### Cloudflare Pages
 
