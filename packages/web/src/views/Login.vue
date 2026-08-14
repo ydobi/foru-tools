@@ -71,6 +71,7 @@
 <script>
 import { User, Lock, DataAnalysis } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
+import { setSession } from '../utils/auth'
 
 export default {
   name: 'LoginView',
@@ -101,42 +102,43 @@ export default {
   },
   methods: {
     handleLogin() {
-      this.$refs.loginForm.validate((valid) => {
-        if (valid) {
-          this.isLoading = true
-          this.error = null
-
-          setTimeout(() => {
-            const users = [
-              { username: 'admin', password: 'admin123', role: 'admin' },
-              { username: 'user', password: 'user123', role: 'user' }
-            ]
-
-            const user = users.find(u =>
-              u.username === this.loginForm.username && u.password === this.loginForm.password
-            )
-
-            if (user) {
-              localStorage.setItem('user', JSON.stringify({
-                username: user.username,
-                role: user.role
-              }))
-
-              ElMessage({
-                message: '登录成功！',
-                type: 'success',
-                duration: 2000
-              })
-
-              this.$router.push('/')
-            } else {
-              this.error = '用户名或密码错误'
-            }
-
-            this.isLoading = false
-          }, 1000)
-        } else {
+      this.$refs.loginForm.validate(async (valid) => {
+        if (!valid) {
           return false
+        }
+
+        this.isLoading = true
+        this.error = null
+
+        try {
+          const res = await fetch('/api/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              username: this.loginForm.username,
+              password: this.loginForm.password
+            })
+          })
+
+          if (!res.ok) {
+            this.error = '用户名或密码错误'
+            return
+          }
+
+          const data = await res.json()
+          setSession(data.user, data.access_token)
+
+          ElMessage({
+            message: '登录成功！',
+            type: 'success',
+            duration: 2000
+          })
+
+          this.$router.push('/')
+        } catch (e) {
+          this.error = '登录失败，请稍后重试'
+        } finally {
+          this.isLoading = false
         }
       })
     }
