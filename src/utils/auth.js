@@ -8,6 +8,9 @@ import {
   FirstAidKit,
   TrendCharts
 } from '@element-plus/icons-vue'
+import { apiFetch } from './api.js'
+
+let sessionVerified = false
 
 /**
  * 获取当前登录用户信息
@@ -18,12 +21,43 @@ export function getUser() {
   return userStr ? JSON.parse(userStr) : null;
 }
 
+export function getToken() {
+  return localStorage.getItem('token');
+}
+
 /**
  * 检查用户是否已登录
  * @returns {Boolean} 是否已登录
  */
 export function isLoggedIn() {
-  return !!getUser();
+  return !!getUser() && !!getToken();
+}
+
+/**
+ * 用 GET /api/me 校验 JWT。本页加载内只请求一次。
+ * @returns {Promise<Boolean>} 会话是否有效
+ */
+export async function ensureSession() {
+  if (!getToken()) {
+    logout();
+    return false;
+  }
+  if (sessionVerified) {
+    return true;
+  }
+  try {
+    const res = await apiFetch('/api/me');
+    if (res.ok) {
+      const data = await res.json();
+      setSession({ user: data });
+      return true;
+    }
+    logout();
+    return false;
+  } catch (e) {
+    logout();
+    return false;
+  }
 }
 
 /**
@@ -44,13 +78,6 @@ export function isAdmin() {
   return hasRole('admin');
 }
 
-/**
- * 登出用户
- */
-export function getToken() {
-  return localStorage.getItem('token');
-}
-
 export function setSession(payload) {
   const user = payload.user || {
     username: payload.username,
@@ -60,11 +87,13 @@ export function setSession(payload) {
   if (payload.access_token) {
     localStorage.setItem('token', payload.access_token);
   }
+  sessionVerified = true;
 }
 
 export function logout() {
   localStorage.removeItem('user');
   localStorage.removeItem('token');
+  sessionVerified = false;
 }
 
 /**

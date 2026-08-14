@@ -93,6 +93,8 @@ npm run preview
 - `POST /api/login`  JSON：username、password
 - `GET /api/me`  Authorization Bearer JWT
 
+受保护路由会通过 GET /api/me 校验 JWT；仅伪造 localStorage 中的 user 不足以通过鉴权。
+
 账号：`admin`（管理员）、`user`。密码存在 D1，明文不进仓库。
 
 ### Cloudflare Pages
