@@ -86,3 +86,11 @@ npm run preview
 - Bootstrap 5
 - SheetJS
 - ECharts
+
+## 登录 API（foru-next-server）
+
+登录改为请求 [foru-next-server](https://github.com/ydobi/foru-next-server) 的 `/api/login`。
+
+Cloudflare Pages 构建时设置 `VITE_API_BASE` 为该 Worker 的 origin（不要末尾斜杠）。
+
+本地开发可留空 `VITE_API_BASE`，Vite 将 `/api` 代理到 `http://127.0.0.1:3001`（`VITE_API_PROXY` 可覆盖）。
