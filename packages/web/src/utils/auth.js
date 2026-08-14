@@ -9,13 +9,33 @@ import {
   TrendCharts
 } from '@element-plus/icons-vue'
 
+const USER_KEY = 'user'
+const TOKEN_KEY = 'token'
+
 /**
  * 获取当前登录用户信息
  * @returns {Object|null} 用户信息对象或null（未登录）
  */
 export function getUser() {
-  const userStr = localStorage.getItem('user');
+  const userStr = localStorage.getItem(USER_KEY);
   return userStr ? JSON.parse(userStr) : null;
+}
+
+/**
+ * 保存登录态（用户名/角色来自 API，令牌用于后续请求）
+ */
+export function setSession(user, token) {
+  localStorage.setItem(USER_KEY, JSON.stringify({
+    username: user.username,
+    role: user.role
+  }));
+  if (token) {
+    localStorage.setItem(TOKEN_KEY, token);
+  }
+}
+
+export function getToken() {
+  return localStorage.getItem(TOKEN_KEY);
 }
 
 /**
@@ -48,7 +68,15 @@ export function isAdmin() {
  * 登出用户
  */
 export function logout() {
-  localStorage.removeItem('user');
+  const token = getToken();
+  localStorage.removeItem(USER_KEY);
+  localStorage.removeItem(TOKEN_KEY);
+  if (token) {
+    fetch('/api/logout', {
+      method: 'POST',
+      headers: { Authorization: 'Bearer ' + token }
+    }).catch(() => {});
+  }
 }
 
 /**
