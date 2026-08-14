@@ -97,10 +97,10 @@ npm run preview
 
 ### Cloudflare Pages
 
-构建变量必须设置 `VITE_API_BASE` 为 Worker 的 origin（不要末尾斜杠），例如：
+构建变量 `VITE_API_BASE` 为 Worker origin（不要末尾斜杠）：
 
 ```
-VITE_API_BASE=https://foru-next-server.<你的workers子域>.workers.dev
+VITE_API_BASE=https://foru-next-server.hkiexx.workers.dev
 ```
 
 不设的话，线上登录会打到 Pages 自己的域名，接口不存在。改环境变量后需要重新构建；推送 `main` 会触发 Pages 部署。
