@@ -71,6 +71,8 @@
 <script>
 import { User, Lock, DataAnalysis } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
+import { apiFetch } from '@/utils/api'
+import { setSession } from '@/utils/auth'
 
 export default {
   name: 'LoginView',
@@ -101,42 +103,38 @@ export default {
   },
   methods: {
     handleLogin() {
-      this.$refs.loginForm.validate((valid) => {
-        if (valid) {
-          this.isLoading = true
-          this.error = null
+      this.$refs.loginForm.validate(async (valid) => {
+        if (!valid) return false
 
-          setTimeout(() => {
-            const users = [
-              { username: 'admin', password: 'admin123', role: 'admin' },
-              { username: 'user', password: 'user123', role: 'user' }
-            ]
+        this.isLoading = true
+        this.error = null
 
-            const user = users.find(u =>
-              u.username === this.loginForm.username && u.password === this.loginForm.password
-            )
+        try {
+          const res = await apiFetch('/api/login', {
+            method: 'POST',
+            body: JSON.stringify({
+              username: this.loginForm.username,
+              password: this.loginForm.password
+            })
+          })
+          const data = await res.json().catch(() => ({}))
 
-            if (user) {
-              localStorage.setItem('user', JSON.stringify({
-                username: user.username,
-                role: user.role
-              }))
+          if (!res.ok) {
+            this.error = data.error || '用户名或密码错误'
+            return
+          }
 
-              ElMessage({
-                message: '登录成功！',
-                type: 'success',
-                duration: 2000
-              })
-
-              this.$router.push('/')
-            } else {
-              this.error = '用户名或密码错误'
-            }
-
-            this.isLoading = false
-          }, 1000)
-        } else {
-          return false
+          setSession(data)
+          ElMessage({
+            message: '登录成功！',
+            type: 'success',
+            duration: 2000
+          })
+          this.$router.push('/')
+        } catch (e) {
+          this.error = '无法连接登录服务'
+        } finally {
+          this.isLoading = false
         }
       })
     }

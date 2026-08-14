@@ -47,8 +47,24 @@ export function isAdmin() {
 /**
  * 登出用户
  */
+export function getToken() {
+  return localStorage.getItem('token');
+}
+
+export function setSession(payload) {
+  const user = payload.user || {
+    username: payload.username,
+    role: payload.role
+  };
+  localStorage.setItem('user', JSON.stringify(user));
+  if (payload.access_token) {
+    localStorage.setItem('token', payload.access_token);
+  }
+}
+
 export function logout() {
   localStorage.removeItem('user');
+  localStorage.removeItem('token');
 }
 
 /**
