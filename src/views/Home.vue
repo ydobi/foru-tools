@@ -1,21 +1,16 @@
 <template>
   <div class="home">
     <el-card class="welcome-card" shadow="never">
-      <p v-if="currentUser" class="welcome-message">
-        欢迎您，<el-tag type="success" size="small">{{ currentUser.username }}</el-tag>
-        ，请选择需要使用的工具：
-      </p>
-      <p v-else class="welcome-message">请从下方选择您需要使用的工具：</p>
+      <p class="welcome-message">请从下方选择您需要使用的工具：</p>
       <p class="welcome-subtitle">集成多种数据处理能力，帮助您更高效地处理业务数据。</p>
     </el-card>
 
     <el-row :gutter="20" class="tool-cards">
-      <el-col v-if="isAdmin" :xs="24" :sm="12" :md="8">
+      <el-col :xs="24" :sm="12" :md="8">
         <el-card class="tool-card" shadow="hover">
           <template #header>
             <div class="card-header">
               <span>公司关联关系处理</span>
-              <el-tag type="danger" size="small" effect="dark">管理员</el-tag>
             </div>
           </template>
           <div class="card-content">
@@ -31,7 +26,6 @@
           <template #header>
             <div class="card-header">
               <span>公司关联关系处理2</span>
-              <el-tag type="success" size="small" effect="dark">所有用户</el-tag>
             </div>
           </template>
           <div class="card-content">
@@ -47,7 +41,6 @@
           <template #header>
             <div class="card-header">
               <span>Excel文件合并</span>
-              <el-tag type="success" size="small" effect="dark">所有用户</el-tag>
             </div>
           </template>
           <div class="card-content">
@@ -63,7 +56,6 @@
           <template #header>
             <div class="card-header">
               <span>医院授权&植入分析</span>
-              <el-tag type="success" size="small" effect="dark">所有用户</el-tag>
             </div>
           </template>
           <div class="card-content">
@@ -79,7 +71,6 @@
           <template #header>
             <div class="card-header">
               <span>订货达成率异常分析</span>
-              <el-tag type="success" size="small" effect="dark">所有用户</el-tag>
             </div>
           </template>
           <div class="card-content">
@@ -90,12 +81,11 @@
         </el-card>
       </el-col>
 
-      <el-col v-if="isAdmin" :xs="24" :sm="12" :md="8">
+      <el-col :xs="24" :sm="12" :md="8">
         <el-card class="tool-card" shadow="hover">
           <template #header>
             <div class="card-header">
               <span>智能地图工具</span>
-              <el-tag type="danger" size="small" effect="dark">管理员</el-tag>
             </div>
           </template>
           <div class="card-content">
@@ -106,14 +96,6 @@
         </el-card>
       </el-col>
     </el-row>
-
-    <el-empty
-      v-if="!isAdmin && !hasUserTools"
-      description="您当前的权限无法访问更多工具，请联系管理员获取更多权限。"
-      :image-size="160"
-    >
-      <el-button type="primary" @click="$router.push('/login')">重新登录</el-button>
-    </el-empty>
   </div>
 </template>
 
@@ -126,7 +108,6 @@ import {
   TrendCharts,
   MapLocation
 } from '@element-plus/icons-vue'
-import { getUser, isAdmin, hasRole } from '../utils/auth'
 
 export default {
   name: 'Home',
@@ -137,23 +118,6 @@ export default {
     FirstAidKit,
     TrendCharts,
     MapLocation
-  },
-  data() {
-    return {
-      currentUser: null,
-      isAdmin: false,
-      hasUserTools: false
-    }
-  },
-  created() {
-    this.updateUserState()
-  },
-  methods: {
-    updateUserState() {
-      this.currentUser = getUser()
-      this.isAdmin = isAdmin()
-      this.hasUserTools = hasRole('user')
-    }
   }
 }
 </script>

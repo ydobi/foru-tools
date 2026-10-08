@@ -86,27 +86,8 @@ npm run preview
 - SheetJS
 - ECharts
 
-## 登录 API（foru-next-server）
+## 访问方式
 
-登录请求 [foru-next-server](https://github.com/ydobi/foru-next-server)（Cloudflare Worker 名：`foru-next-server`）：
+站点已取消登录，打开 https://foru-tools.pages.dev/ 即可直接使用全部工具，无需账号密码，也不再调用后端登录接口（`/api/login`、`/api/me`）。
 
-- `POST /api/login`  JSON：username、password
-- `GET /api/me`  Authorization Bearer JWT
-
-受保护路由会通过 GET /api/me 校验 JWT；仅伪造 localStorage 中的 user 不足以通过鉴权。
-
-账号：`admin`（管理员）、`user`。密码存在 D1，明文不进仓库。
-
-### Cloudflare Pages
-
-构建变量 `VITE_API_BASE` 为 Worker origin（不要末尾斜杠）：
-
-```
-VITE_API_BASE=https://foru-next-server.hkiexx.workers.dev
-```
-
-不设的话，线上登录会打到 Pages 自己的域名，接口不存在。改环境变量后需要重新构建；推送 `main` 会触发 Pages 部署。
-
-### 本地开发
-
-可留空 `VITE_API_BASE`。Vite 把 `/api` 代理到 `http://127.0.0.1:3001`（`VITE_API_PROXY` 可覆盖）。本地对接 Next 时改代理目标端口即可。
+所有数据处理均在浏览器本地完成，构建时无需配置任何环境变量。推送 `main` 会触发 Cloudflare Pages 重新部署。
