@@ -44,6 +44,11 @@ const routes = [
     component: OrderAchievementAnalysis
   },
   {
+    path: '/excel-split-by-manager',
+    name: 'ExcelSplitByManager',
+    component: () => import('../views/ExcelSplitByManager.vue')
+  },
+  {
     // 旧的 /login 书签及未知路径都回到首页
     path: '/:pathMatch(.*)*',
     redirect: '/'

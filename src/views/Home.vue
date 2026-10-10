@@ -55,6 +55,21 @@
         <el-card class="tool-card" shadow="hover">
           <template #header>
             <div class="card-header">
+              <span>按销售经理拆分Excel</span>
+            </div>
+          </template>
+          <div class="card-content">
+            <el-icon class="tool-icon"><Files /></el-icon>
+            <p class="card-description">按 A 列销售经理把数据拆分成多个工作表，保留原表与格式。</p>
+            <el-button type="primary" @click="$router.push('/excel-split-by-manager')">使用工具</el-button>
+          </div>
+        </el-card>
+      </el-col>
+
+      <el-col :xs="24" :sm="12" :md="8">
+        <el-card class="tool-card" shadow="hover">
+          <template #header>
+            <div class="card-header">
               <span>医院授权&植入分析</span>
             </div>
           </template>
