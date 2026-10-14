@@ -16,6 +16,8 @@
           <li>如果授权公司A有关联公司BCD，但只有C订货，那么关联公司只写C</li>
           <li>如果授权公司A有关联公司BCD，BC都有订货，就写B/C</li>
           <li>如果授权公司A有关联公司BCD，但都没有订货，就写无</li>
+          <li>结果中「关联编号」取自关联关系表；该公司无关联编号时填 #N/A</li>
+          <li>「处理结果」：关联公司是否订货为否时填授权公司名称；否则填「授权公司/关联公司是否订货」</li>
         </ul>
       </el-collapse-item>
     </el-collapse>
@@ -62,10 +64,12 @@
         <el-button type="success" @click="downloadExcel">下载Excel结果</el-button>
       </div>
       <el-table :data="resultData" border stripe max-height="500" style="width: 100%">
+        <el-table-column prop="关联编号" label="关联编号" min-width="120" />
         <el-table-column prop="授权公司" label="授权公司" min-width="160" />
         <el-table-column prop="关联公司" label="关联公司" min-width="200" />
         <el-table-column prop="授权公司是否订货" label="授权公司是否订货" width="140" />
         <el-table-column prop="关联公司是否订货" label="关联公司是否订货" min-width="160" />
+        <el-table-column prop="处理结果" label="处理结果" min-width="200" />
       </el-table>
     </template>
   </ToolPage>
@@ -200,9 +204,11 @@ export default {
 
         for (const authCompany of authCompanyList) {
           let relatedCompanies = []
+          const relationIds = []
 
-          for (const [, companies] of relationMap.entries()) {
+          for (const [relationId, companies] of relationMap.entries()) {
             if (companies.includes(authCompany)) {
+              relationIds.push(relationId)
               relatedCompanies = relatedCompanies.concat(
                 companies.filter(c => c !== authCompany)
               )
@@ -210,6 +216,8 @@ export default {
           }
 
           relatedCompanies = [...new Set(relatedCompanies)]
+          const uniqueRelationIds = [...new Set(relationIds)]
+          const relationIdStr = uniqueRelationIds.length > 0 ? uniqueRelationIds.join('/') : '#N/A'
 
           const orderingRelatedCompanies = relatedCompanies.filter(company =>
             orderCompanyList.includes(company)
@@ -224,12 +232,17 @@ export default {
 
           const isAuthOrdering = orderCompanyList.includes(authCompany) ? '是' : '否'
           const relatedCompaniesStr = relatedCompanies.length > 0 ? relatedCompanies.join('/') : '无'
+          const processResult = orderingRelatedCompanyStr === '否'
+            ? authCompany
+            : `${authCompany}/${orderingRelatedCompanyStr}`
 
           this.resultData.push({
+            '关联编号': relationIdStr,
             '授权公司': authCompany,
             '关联公司': relatedCompaniesStr,
             '授权公司是否订货': isAuthOrdering,
-            '关联公司是否订货': orderingRelatedCompanyStr
+            '关联公司是否订货': orderingRelatedCompanyStr,
+            '处理结果': processResult
           })
         }
 
