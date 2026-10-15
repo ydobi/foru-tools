@@ -18,7 +18,7 @@
           <li>查找每个公司对应的关联编号，获取关联公司列表。</li>
           <li>根据关联公司列表，筛选出关联的授权公司和订货公司。</li>
           <li>将关联的平台、销售经理、植入公司、授权公司和订货公司信息合并，相同信息用斜杠分隔，若无则显示#N/A。</li>
-          <li>同一公司有多个销售经理时，销售经理列用斜杠分隔。</li>
+          <li>同一公司有多个平台或多个销售经理时，平台列与销售经理列均用斜杠分隔。</li>
           <li>下载Excel结果时，一个文件内包含三个工作表：植入结果 / 授权结果 / 订货结果。</li>
         </ul>
       </el-collapse-item>
@@ -223,22 +223,22 @@ export default {
 
       reader.readAsArrayBuffer(this.selectedFile)
     },
-    /** 收集关联公司在源表中的销售经理（同一公司多行多经理也一并收录，去重后用 / 连接） */
-    collectManagers(rows, companyKey, managerKey, relatedCompanyNames) {
-      const managers = []
+    /** 收集关联公司在源表中某列的值（同一公司多行也一并收录，去重后保持首次出现顺序） */
+    collectFieldValues(rows, companyKey, fieldKey, relatedCompanyNames) {
+      const values = []
       const seen = new Set()
       for (const name of relatedCompanyNames) {
         for (const row of rows) {
           if (row[companyKey] !== name) continue
-          const raw = row[managerKey]
+          const raw = row[fieldKey]
           if (raw == null) continue
-          const manager = String(raw).trim()
-          if (!manager || seen.has(manager)) continue
-          seen.add(manager)
-          managers.push(manager)
+          const value = String(raw).trim()
+          if (!value || seen.has(value)) continue
+          seen.add(value)
+          values.push(value)
         }
       }
-      return managers
+      return values
     },
     joinOrNA(values) {
       return values.length > 0 ? values.join('/') : '#N/A'
@@ -296,13 +296,11 @@ export default {
 
           relatedCompanies = relatedCompanies.filter(c => implantCompanies.some(implant => implant[implantCompanyKey] === c))
 
-          let relatedPlatforms = relatedCompanies.map(c => implantCompanies.find(implant => implant[implantCompanyKey] === c)[implantPlatformKey])
-          const relatedManagers = this.collectManagers(implantCompanies, implantCompanyKey, implantManagerKey, relatedCompanies)
-
           relatedAuthCompanies = [...new Set(relatedAuthCompanies)]
           relatedOrderingCompanies = [...new Set(relatedOrderingCompanies)]
           relatedCompanies = [...new Set(relatedCompanies)]
-          relatedPlatforms = [...new Set(relatedPlatforms)]
+          const relatedPlatforms = this.collectFieldValues(implantCompanies, implantCompanyKey, implantPlatformKey, relatedCompanies)
+          const relatedManagers = this.collectFieldValues(implantCompanies, implantCompanyKey, implantManagerKey, relatedCompanies)
 
           const resultRow = {
             '平台': this.joinOrNA(relatedPlatforms),
@@ -344,13 +342,11 @@ export default {
 
           relatedCompanies = relatedCompanies.filter(c => authCompanies.some(auth => auth[authCompanyKey] === c))
 
-          let relatedPlatforms = relatedCompanies.map(c => authCompanies.find(auth => auth[authCompanyKey] === c)[authChannelKey])
-          const relatedManagers = this.collectManagers(authCompanies, authCompanyKey, authManagerKey, relatedCompanies)
-
           relatedImplantCompanies = [...new Set(relatedImplantCompanies)]
           relatedOrderingCompanies = [...new Set(relatedOrderingCompanies)]
           relatedCompanies = [...new Set(relatedCompanies)]
-          relatedPlatforms = [...new Set(relatedPlatforms)]
+          const relatedPlatforms = this.collectFieldValues(authCompanies, authCompanyKey, authChannelKey, relatedCompanies)
+          const relatedManagers = this.collectFieldValues(authCompanies, authCompanyKey, authManagerKey, relatedCompanies)
 
           const resultRow = {
             '平台': this.joinOrNA(relatedPlatforms),
@@ -391,13 +387,12 @@ export default {
           let relatedImplantCompanies = relatedCompanies.filter(c => implantCompanies.some(implant => implant[implantCompanyKey] === c))
 
           relatedCompanies = relatedCompanies.filter(c => orderCompanies.some(order => order[orderCompanyKey] === c))
-          let relatedPlatforms = relatedCompanies.map(c => orderCompanies.find(order => order[orderCompanyKey] === c)[orderPlatformKey])
-          const relatedManagers = this.collectManagers(orderCompanies, orderCompanyKey, orderManagerKey, relatedCompanies)
 
           relatedAuthCompanies = [...new Set(relatedAuthCompanies)]
           relatedImplantCompanies = [...new Set(relatedImplantCompanies)]
           relatedCompanies = [...new Set(relatedCompanies)]
-          relatedPlatforms = [...new Set(relatedPlatforms)]
+          const relatedPlatforms = this.collectFieldValues(orderCompanies, orderCompanyKey, orderPlatformKey, relatedCompanies)
+          const relatedManagers = this.collectFieldValues(orderCompanies, orderCompanyKey, orderManagerKey, relatedCompanies)
 
           const resultRow = {
             '平台': this.joinOrNA(relatedPlatforms),
