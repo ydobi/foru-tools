@@ -7,9 +7,9 @@
       <el-collapse-item title="使用说明" name="1">
         <p>请上传包含以下四个工作表的Excel文件：</p>
         <ol>
-          <li><strong>植入公司</strong> - 第一个工作表，必须包含“植入公司”列和“平台”列。</li>
-          <li><strong>授权公司</strong> - 第二个工作表，必须包含“授权公司”列，可包含“平台”列。</li>
-          <li><strong>订货公司</strong> - 第三个工作表，必须包含“订货公司”列和“平台”列。</li>
+          <li><strong>植入公司</strong> - 第一个工作表，表头为：平台 / 销售经理 / 植入公司。</li>
+          <li><strong>授权公司</strong> - 第二个工作表，表头为：平台 / 销售经理 / 授权公司。</li>
+          <li><strong>订货公司</strong> - 第三个工作表，表头为：平台 / 销售经理 / 订货公司。</li>
           <li><strong>关联关系</strong> - 第四个工作表，必须包含“经销商名称”和“关联编号”列。</li>
         </ol>
         <p>处理规则：</p>
@@ -17,7 +17,9 @@
           <li>分别以植入公司、授权公司和订货公司作为数据源，基于关联关系工作表构建新的关联数据。</li>
           <li>查找每个公司对应的关联编号，获取关联公司列表。</li>
           <li>根据关联公司列表，筛选出关联的授权公司和订货公司。</li>
-          <li>将关联的平台、植入公司、授权公司和订货公司信息合并，相同信息用斜杠分隔，若无则显示#N/A。</li>
+          <li>将关联的平台、销售经理、植入公司、授权公司和订货公司信息合并，相同信息用斜杠分隔，若无则显示#N/A。</li>
+          <li>同一公司有多个平台或多个销售经理时，平台列与销售经理列均用斜杠分隔。</li>
+          <li>下载Excel结果时，一个文件内包含三个工作表：植入结果 / 授权结果 / 订货结果。</li>
         </ul>
       </el-collapse-item>
     </el-collapse>
@@ -59,14 +61,15 @@
     />
 
     <template #result v-if="resultData1.length > 0 || resultData2.length > 0 || resultData3.length > 0">
+      <div class="result-header">
+        <h3>处理结果</h3>
+        <el-button type="success" @click="downloadExcel">下载Excel结果</el-button>
+      </div>
       <el-tabs v-model="activeTab">
         <el-tab-pane v-if="resultData1.length > 0" label="植入结果" name="1">
-          <div class="result-header">
-            <h3>植入结果</h3>
-            <el-button type="success" @click="downloadExcel(resultData1, '植入')">下载Excel结果</el-button>
-          </div>
           <el-table :data="resultData1" border stripe max-height="500" style="width: 100%">
             <el-table-column prop="平台" label="平台" min-width="120" />
+            <el-table-column prop="销售经理" label="销售经理" min-width="140" />
             <el-table-column prop="植入公司" label="植入公司" min-width="160" />
             <el-table-column prop="授权公司" label="授权公司" min-width="160" />
             <el-table-column prop="订货公司" label="订货公司" min-width="160" />
@@ -74,12 +77,9 @@
         </el-tab-pane>
 
         <el-tab-pane v-if="resultData2.length > 0" label="授权结果" name="2">
-          <div class="result-header">
-            <h3>授权结果</h3>
-            <el-button type="success" @click="downloadExcel(resultData2, '授权')">下载Excel结果</el-button>
-          </div>
           <el-table :data="resultData2" border stripe max-height="500" style="width: 100%">
             <el-table-column prop="平台" label="平台" min-width="120" />
+            <el-table-column prop="销售经理" label="销售经理" min-width="140" />
             <el-table-column prop="授权公司" label="授权公司" min-width="160" />
             <el-table-column prop="植入公司" label="植入公司" min-width="160" />
             <el-table-column prop="订货公司" label="订货公司" min-width="160" />
@@ -87,12 +87,9 @@
         </el-tab-pane>
 
         <el-tab-pane v-if="resultData3.length > 0" label="订货结果" name="3">
-          <div class="result-header">
-            <h3>订货结果</h3>
-            <el-button type="success" @click="downloadExcel(resultData3, '订货')">下载Excel结果</el-button>
-          </div>
           <el-table :data="resultData3" border stripe max-height="500" style="width: 100%">
             <el-table-column prop="平台" label="平台" min-width="120" />
+            <el-table-column prop="销售经理" label="销售经理" min-width="140" />
             <el-table-column prop="订货公司" label="订货公司" min-width="160" />
             <el-table-column prop="植入公司" label="植入公司" min-width="160" />
             <el-table-column prop="授权公司" label="授权公司" min-width="160" />
@@ -172,6 +169,9 @@ export default {
           if (!implantKeys.some(k => k.includes('植入公司'))) {
             throw new Error('植入公司工作表缺少"植入公司"列')
           }
+          if (!implantKeys.some(k => k.includes('销售经理'))) {
+            throw new Error('植入公司工作表缺少"销售经理"列')
+          }
 
           if (!authCompanies.length) {
             throw new Error('授权公司工作表为空')
@@ -181,6 +181,9 @@ export default {
           if (!authKeys.some(k => k.includes('授权公司'))) {
             throw new Error('授权公司工作表缺少"授权公司"列')
           }
+          if (!authKeys.some(k => k.includes('销售经理'))) {
+            throw new Error('授权公司工作表缺少"销售经理"列')
+          }
 
           if (!orderCompanies.length) {
             throw new Error('订货公司工作表为空')
@@ -189,6 +192,9 @@ export default {
           const orderKeys = Object.keys(orderCompanies[0])
           if (!orderKeys.some(k => k.includes('订货公司'))) {
             throw new Error('订货公司工作表缺少"订货公司"列')
+          }
+          if (!orderKeys.some(k => k.includes('销售经理'))) {
+            throw new Error('订货公司工作表缺少"销售经理"列')
           }
 
           if (!relations.length) {
@@ -217,13 +223,36 @@ export default {
 
       reader.readAsArrayBuffer(this.selectedFile)
     },
+    /** 收集关联公司在源表中某列的值（同一公司多行也一并收录，去重后保持首次出现顺序） */
+    collectFieldValues(rows, companyKey, fieldKey, relatedCompanyNames) {
+      const values = []
+      const seen = new Set()
+      for (const name of relatedCompanyNames) {
+        for (const row of rows) {
+          if (row[companyKey] !== name) continue
+          const raw = row[fieldKey]
+          if (raw == null) continue
+          const value = String(raw).trim()
+          if (!value || seen.has(value)) continue
+          seen.add(value)
+          values.push(value)
+        }
+      }
+      return values
+    },
+    joinOrNA(values) {
+      return values.length > 0 ? values.join('/') : '#N/A'
+    },
     processData(authCompanies, orderCompanies, relations, implantCompanies) {
       try {
         const implantPlatformKey = this.findKey(implantCompanies[0], '平台')
+        const implantManagerKey = this.findKey(implantCompanies[0], '销售经理')
         const implantCompanyKey = this.findKey(implantCompanies[0], '植入公司')
         const authChannelKey = this.findKey(authCompanies[0], '平台')
+        const authManagerKey = this.findKey(authCompanies[0], '销售经理')
         const authCompanyKey = this.findKey(authCompanies[0], '授权公司')
         const orderPlatformKey = this.findKey(orderCompanies[0], '平台')
+        const orderManagerKey = this.findKey(orderCompanies[0], '销售经理')
         const orderCompanyKey = this.findKey(orderCompanies[0], '订货公司')
         const dealerNameKey = this.findKey(relations[0], '经销商名称')
         const relationIdKey = this.findKey(relations[0], '关联编号')
@@ -267,18 +296,18 @@ export default {
 
           relatedCompanies = relatedCompanies.filter(c => implantCompanies.some(implant => implant[implantCompanyKey] === c))
 
-          let relatedPlatforms = relatedCompanies.map(c => implantCompanies.find(implant => implant[implantCompanyKey] === c)[implantPlatformKey])
-
           relatedAuthCompanies = [...new Set(relatedAuthCompanies)]
           relatedOrderingCompanies = [...new Set(relatedOrderingCompanies)]
           relatedCompanies = [...new Set(relatedCompanies)]
-          relatedPlatforms = [...new Set(relatedPlatforms)]
+          const relatedPlatforms = this.collectFieldValues(implantCompanies, implantCompanyKey, implantPlatformKey, relatedCompanies)
+          const relatedManagers = this.collectFieldValues(implantCompanies, implantCompanyKey, implantManagerKey, relatedCompanies)
 
           const resultRow = {
-            '平台': relatedPlatforms.length > 0 ? relatedPlatforms.join('/') : '#N/A',
-            '植入公司': relatedCompanies.length > 0 ? relatedCompanies.join('/') : '#N/A',
-            '授权公司': relatedAuthCompanies.length > 0 ? relatedAuthCompanies.join('/') : '#N/A',
-            '订货公司': relatedOrderingCompanies.length > 0 ? relatedOrderingCompanies.join('/') : '#N/A',
+            '平台': this.joinOrNA(relatedPlatforms),
+            '销售经理': this.joinOrNA(relatedManagers),
+            '植入公司': this.joinOrNA(relatedCompanies),
+            '授权公司': this.joinOrNA(relatedAuthCompanies),
+            '订货公司': this.joinOrNA(relatedOrderingCompanies),
             '关联编号': relationId || '#N/A'
           }
 
@@ -313,18 +342,18 @@ export default {
 
           relatedCompanies = relatedCompanies.filter(c => authCompanies.some(auth => auth[authCompanyKey] === c))
 
-          let relatedPlatforms = relatedCompanies.map(c => authCompanies.find(auth => auth[authCompanyKey] === c)[authChannelKey])
-
           relatedImplantCompanies = [...new Set(relatedImplantCompanies)]
           relatedOrderingCompanies = [...new Set(relatedOrderingCompanies)]
           relatedCompanies = [...new Set(relatedCompanies)]
-          relatedPlatforms = [...new Set(relatedPlatforms)]
+          const relatedPlatforms = this.collectFieldValues(authCompanies, authCompanyKey, authChannelKey, relatedCompanies)
+          const relatedManagers = this.collectFieldValues(authCompanies, authCompanyKey, authManagerKey, relatedCompanies)
 
           const resultRow = {
-            '平台': relatedPlatforms.length > 0 ? relatedPlatforms.join('/') : '#N/A',
-            '授权公司': relatedCompanies.length > 0 ? relatedCompanies.join('/') : '#N/A',
-            '植入公司': relatedImplantCompanies.length > 0 ? relatedImplantCompanies.join('/') : '#N/A',
-            '订货公司': relatedOrderingCompanies.length > 0 ? relatedOrderingCompanies.join('/') : '#N/A',
+            '平台': this.joinOrNA(relatedPlatforms),
+            '销售经理': this.joinOrNA(relatedManagers),
+            '授权公司': this.joinOrNA(relatedCompanies),
+            '植入公司': this.joinOrNA(relatedImplantCompanies),
+            '订货公司': this.joinOrNA(relatedOrderingCompanies),
             '关联编号': relationId || '#N/A'
           }
 
@@ -358,18 +387,19 @@ export default {
           let relatedImplantCompanies = relatedCompanies.filter(c => implantCompanies.some(implant => implant[implantCompanyKey] === c))
 
           relatedCompanies = relatedCompanies.filter(c => orderCompanies.some(order => order[orderCompanyKey] === c))
-          let relatedPlatforms = relatedCompanies.map(c => orderCompanies.find(order => order[orderCompanyKey] === c)[orderPlatformKey])
 
           relatedAuthCompanies = [...new Set(relatedAuthCompanies)]
           relatedImplantCompanies = [...new Set(relatedImplantCompanies)]
           relatedCompanies = [...new Set(relatedCompanies)]
-          relatedPlatforms = [...new Set(relatedPlatforms)]
+          const relatedPlatforms = this.collectFieldValues(orderCompanies, orderCompanyKey, orderPlatformKey, relatedCompanies)
+          const relatedManagers = this.collectFieldValues(orderCompanies, orderCompanyKey, orderManagerKey, relatedCompanies)
 
           const resultRow = {
-            '平台': relatedPlatforms.length > 0 ? relatedPlatforms.join('/') : '#N/A',
-            '订货公司': relatedCompanies.length > 0 ? relatedCompanies.join('/') : '#N/A',
-            '植入公司': relatedImplantCompanies.length > 0 ? relatedImplantCompanies.join('/') : '#N/A',
-            '授权公司': relatedAuthCompanies.length > 0 ? relatedAuthCompanies.join('/') : '#N/A',
+            '平台': this.joinOrNA(relatedPlatforms),
+            '销售经理': this.joinOrNA(relatedManagers),
+            '订货公司': this.joinOrNA(relatedCompanies),
+            '植入公司': this.joinOrNA(relatedImplantCompanies),
+            '授权公司': this.joinOrNA(relatedAuthCompanies),
             '关联编号': relationId || '#N/A'
           }
 
@@ -398,14 +428,33 @@ export default {
       return key
     },
 
-    downloadExcel(resultData, name) {
-      if (resultData.length === 0) {
+    downloadExcel() {
+      if (this.resultData1.length === 0 && this.resultData2.length === 0 && this.resultData3.length === 0) {
         return
       }
-      const ws = XLSX.utils.json_to_sheet(resultData)
       const wb = XLSX.utils.book_new()
-      XLSX.utils.book_append_sheet(wb, ws, '处理结果')
-      XLSX.writeFile(wb, `${name}.xlsx`)
+      const sheetSpecs = [
+        {
+          name: '植入结果',
+          data: this.resultData1,
+          headers: ['平台', '销售经理', '植入公司', '授权公司', '订货公司', '关联编号']
+        },
+        {
+          name: '授权结果',
+          data: this.resultData2,
+          headers: ['平台', '销售经理', '授权公司', '植入公司', '订货公司', '关联编号']
+        },
+        {
+          name: '订货结果',
+          data: this.resultData3,
+          headers: ['平台', '销售经理', '订货公司', '植入公司', '授权公司', '关联编号']
+        }
+      ]
+      for (const spec of sheetSpecs) {
+        const ws = XLSX.utils.json_to_sheet(spec.data.length ? spec.data : [], { header: spec.headers })
+        XLSX.utils.book_append_sheet(wb, ws, spec.name)
+      }
+      XLSX.writeFile(wb, '公司关联关系处理结果.xlsx')
     }
   }
 }
