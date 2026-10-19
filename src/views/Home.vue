@@ -70,6 +70,21 @@
         <el-card class="tool-card" shadow="hover">
           <template #header>
             <div class="card-header">
+              <span>绕口令公司-按照销售经理汇总</span>
+            </div>
+          </template>
+          <div class="card-content">
+            <el-icon class="tool-icon"><DataAnalysis /></el-icon>
+            <p class="card-description">按销售经理、TL、大区汇总植入/授权/订货公司数量及缺失项。</p>
+            <el-button type="primary" @click="$router.push('/manager-summary')">使用工具</el-button>
+          </div>
+        </el-card>
+      </el-col>
+
+      <el-col :xs="24" :sm="12" :md="8">
+        <el-card class="tool-card" shadow="hover">
+          <template #header>
+            <div class="card-header">
               <span>医院授权&植入分析</span>
             </div>
           </template>

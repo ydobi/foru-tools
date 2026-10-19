@@ -49,6 +49,11 @@ const routes = [
     component: () => import('../views/ExcelSplitByManager.vue')
   },
   {
+    path: '/manager-summary',
+    name: 'ManagerSummary',
+    component: () => import('../views/ManagerSummary.vue')
+  },
+  {
     // 旧的 /login 书签及未知路径都回到首页
     path: '/:pathMatch(.*)*',
     redirect: '/'
