@@ -94,7 +94,7 @@ export default {
         })
         const a = document.createElement('a')
         a.href = URL.createObjectURL(blob)
-        a.download = this.file.name.replace(/\.(xlsx|xlsm|xls)$/i, '') + '_按销售经理汇总.xlsx'
+        a.download = '汇总结果.xlsx'
         a.click()
         setTimeout(() => URL.revokeObjectURL(a.href), 1000)
         ElMessage.success('汇总完成，已开始下载')
