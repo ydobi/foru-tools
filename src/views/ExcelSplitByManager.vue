@@ -1,7 +1,7 @@
 <template>
   <ToolPage
     title="按销售经理拆分Excel"
-    description="上传 Excel，按 A 列「销售经理」拆分为多个工作表；保留原表，样式、列宽、公式一并保留。全部在浏览器本地处理。"
+    description="上传 Excel，按 A 列「销售经理」拆分为多个工作表；保留原表，样式、列宽、公式、表格条纹与数据条一并保留。全部在浏览器本地处理。"
   >
     <template #actions>
       <el-upload
